@@ -1,0 +1,82 @@
+{
+    "apiName": "provider-app",
+    "aefProfiles": [
+        {
+            "aefId": "AEFf23bca4e74a8ade8142ece92a5aa69",
+            "versions": [
+                {
+                    "apiVersion": "v1",
+                    "expiry": "2100-11-30T10:32:02.004Z",
+                    "resources": [
+                        {
+                            "resourceName": "Hello",
+                            "commType": "REQUEST_RESPONSE",
+                            "uri": "/hello",
+                            "custOpName": "http_get",
+                            "operations": [
+                                "GET"
+                            ],
+                            "description": "Endpoint to return a greeting message.\n\nGET /hello\nRequires authentication via token verification.\n\nReturns:\ndict: A JSON object containing a greeting message.\nExample: {\"message\": \"Hello, World!\"}"
+                        }
+                    ],
+                    "custOperations": [
+                        {
+                            "commType": "REQUEST_RESPONSE",
+                            "custOpName": "string",
+                            "operations": [
+                                "POST"
+                            ],
+                            "description": "string"
+                        },
+                        {
+                            "commType": "REQUEST_RESPONSE",
+                            "custOpName": "check-authentication",
+                            "operations": [
+                                "POST"
+                            ],
+                            "description": "Check authentication request."
+                        },
+                        {
+                            "commType": "REQUEST_RESPONSE",
+                            "custOpName": "revoke-authentication",
+                            "operations": [
+                                "POST"
+                            ],
+                            "description": "Revoke authorization for service APIs."
+                        }
+                    ]
+                }
+            ],
+            "protocol": "HTTP_1_1",
+            "dataFormat": "JSON",
+            "securityMethods": [
+                "OAUTH"
+            ],
+            "interfaceDescriptions": [
+                {
+                    "port": 8000,
+                    "securityMethods": [
+                        "OAUTH"
+                    ],
+                    "ipv4Addr": "127.0.0.1"
+                }
+            ]
+        }
+    ],
+    "description": "No description provided",
+    "supportedFeatures": "0",
+    "shareableInfo": {
+        "isShareable": true,
+        "capifProvDoms": [
+            "string"
+        ]
+    },
+    "serviceAPICategory": "string",
+    "apiSuppFeats": "0",
+    "pubApiPath": {
+        "ccfIds": [
+            "string"
+        ]
+    },
+    "ccfId": "string"
+}

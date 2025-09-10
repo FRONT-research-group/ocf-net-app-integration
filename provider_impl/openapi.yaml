@@ -1,0 +1,37 @@
+openapi: 3.1.0
+info:
+  title: Provider App
+  version: 1.0.0
+paths:
+  /hello:
+    get:
+      summary: Hello
+      description: |-
+        Endpoint to return a greeting message.
+
+        GET /hello
+        Requires authentication via token verification.
+
+        Returns:
+        dict: A JSON object containing a greeting message.
+        Example: {"message": "Hello, World!"}
+      operationId: hello_hello_get
+      responses:
+        "200":
+          description: 200 OK
+          content:
+            application/json:
+              schema: {}
+        "401":
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              example:
+                detail: Unauthorized
+      security:
+      - HTTPBearer: []
+components:
+  securitySchemes:
+    HTTPBearer:
+      type: http
+      scheme: bearer
