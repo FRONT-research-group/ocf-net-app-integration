@@ -1,10 +1,10 @@
-import os, argparse
+import os
 from opencapif_sdk import capif_provider_connector, api_schema_translator
 
 
 #API_HOST = os.getenv('API_HOST', '10.220.2.43')
 API_HOST = os.getenv('API_HOST', '127.0.0.1')
-API_PORT = os.getenv('API_PORT', '8000')
+API_PORT = os.getenv('API_PORT', '8001')
 CONFIG_FILE = os.getenv('CONFIG_FILE', './provider_config_sample.json')
 OPENAPI_FILE = os.getenv('OPENAPI_FILE', './openapi.yaml')
 API_DESC_FILE = os.getenv('API_DESC_FILE', './provider-app.json') # should match the prefix of the URL
@@ -27,36 +27,10 @@ def showcase_capif_nef_connector_publish():
         Any exceptions raised by the connector or translator methods.
     """
 
-    parser = argparse.ArgumentParser(description="Argument parser for CAPIF connector")
-    
-    parser.add_argument("publish", help="Either publish or unpublish the service")
-
-    args = parser.parse_args()
-    if args.publish != "publish" and args.publish != "unpublish":
-        print("Unknown argument, use 'publish' or 'unpublish'.")
-        return
-    
     capif_connector = capif_provider_connector(config_file=CONFIG_FILE)
-
-    if args.publish == "unpublish":
-
-        apf = capif_connector.provider_capif_ids["APF-1"]
-
-        #TODO enhancne to support a list of AEFs
-        aef = capif_connector.provider_capif_ids["AEF-1"]
-        
-        capif_connector.publish_req['publisher_apf_id'] = apf
-        capif_connector.publish_req['publisher_aefs_ids'] = [aef]
-        capif_connector.supported_features ="4"
-
-        capif_connector.unpublish_service()
-        print("The unpublish process is completed")
-        return
     
     capif_connector.onboard_provider()
 
-
-    #after build should set the aefId on aef profile of the created_file(e.g. provider-app.json)
     translator = api_schema_translator(OPENAPI_FILE)
     translator.build(API_URL, "0", "0")
 
@@ -72,7 +46,7 @@ def showcase_capif_nef_connector_publish():
     capif_connector.supported_features ="4"
 
     capif_connector.publish_services()
-    print("COMPLETED")
+    print("Publication of provider's service is completed")
 
 if __name__ == "__main__":
     showcase_capif_nef_connector_publish()
