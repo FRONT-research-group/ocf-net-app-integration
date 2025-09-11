@@ -64,38 +64,44 @@ Make sure you have a running instance of [OpenCAPIF](https://labs.etsi.org/rep/o
 
   First, register a new user in OpenCAPIF. This user can later act as a **provider**, **invoker**, or both depending on the configuration.
   ```bash
+  cd ocf-net-app-integration/user_creation/
   python register_and_login.py
   ```
 2. **Load Environment Variables**
     
-  All environment variables (common to provider and invoker) are stored in the .env file.
-  Load them before running the onboarding scripts:
+  All environment variables for provider onboarding are stored in the .env file.
+  Load them before running the onboarding script:
   ```bash
+  cd ocf-net-app-integration/
   export $(grep -v '^#' .env | xargs)
   ```
 3. **Provider Onboarding & Service Publication**
    
   Onboard the provider into OpenCAPIF and publish its services.
   ```bash
-  python provider_capif_connector.py publish
-    ```
+  cd ocf-net-app-integration/provider_impl/
+  python provider_capif_connector.py
+  ```
 4. **Invoker Onboarding & Service Discovery**
    
   Onboard the invoker and discover available services.
   ```bash
+  cd ocf-net-app-integration/invoker_impl
   python invoker_capif_connector.py
   ```
 5. **Start the Provider App**
    
   Run the provider app to expose the published service:
   ```bash
-  python -m provider_impl.provider_app.app
+  cd ocf-net-app-integration/
+  PYTHONPATH=provider_impl python provider_impl/provider_app/app.py
   ```
 6. **Start the Invoker App**
    
   Finally, run the invoker app to consume the provider’s service with authorized requests:
   ```bash
-  python -m invoker_impl.invoker_app.app
+  cd ocf-net-app-integration/
+  PYTHONPATH=invoker_impl python invoker_impl/invoker_app/main.py
   ```
 
 ---
