@@ -58,7 +58,8 @@ The repository includes:
 ## ⚡ Execution Guide
 
 This section describes how to run the repository step by step.  
-Make sure you have a running instance of [OpenCAPIF](https://labs.etsi.org/rep/ocf/capif) and the [OpenCAPIF SDK](https://labs.etsi.org/rep/ocf/sdk) properly configured.
+Make sure you have a running instance of [OpenCAPIF](https://labs.etsi.org/rep/ocf/capif) and the [OpenCAPIF SDK](https://labs.etsi.org/rep/ocf/sdk) properly configured.  
+Also make sure to create a virtual environment and install `requirements.txt` file before executing the steps below.
 
 1. **User Registration**
 
