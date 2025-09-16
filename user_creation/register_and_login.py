@@ -57,7 +57,7 @@ def __log_to_capif(variables):
         )
         response.raise_for_status()
         response_payload = json.loads(response.text)
-        logger.info("Logged in to CAPIF successfully")
+        logger.info("Logged in to CAPIF successfully and obtained the following response_payload: %s", response_payload)
         return response_payload
     except Exception as e:
         logger.error("Error during login to CAPIF: %s",e)
@@ -72,10 +72,10 @@ def __create_user(admin_token, variables):
             "username": variables["capif_username"],
             "password": variables["capif_password"],
             "description": "description",
-            "email": "csr_email_address@tid.es",
+            "email": "csr_email_address@dimokritos.gr",
             "enterprise": "csr_organization",
             "country": "csr_locality",
-            "purpose": "SDK for SAFE 6G",
+            "purpose": "test SDK user",
         }
         headers = {
             "Authorization": f"Bearer {admin_token}",
@@ -87,7 +87,7 @@ def __create_user(admin_token, variables):
         )
         response.raise_for_status()
         response_payload = json.loads(response.text)
-        logger.info("User created successfully")
+        logger.info("User created successfully with the following response_payload: %s", response_payload)
         return response_payload
     except Exception as e:
         logger.error("Error during user creation in CAPIF: %s",e)

@@ -16,15 +16,12 @@ def showcase_capif_connector():
     capif_connector = capif_invoker_connector(config_file="./invoker_config_sample.json")
 
     capif_connector.onboard_invoker()
-    print("COMPLETED")
 
     discoverer_svc = service_discoverer(config_file="./invoker_config_sample.json")
     discoverer_svc.discover()
 
-    print("COMPLETED")
 
     discoverer_svc.get_tokens()
-    print("COMPLETED")
     jwt_token=discoverer_svc.token
 
     print("JWT TOKEN: ", jwt_token)
