@@ -117,7 +117,7 @@ sequenceDiagram
     participant CAPIF as CAPIF (OpenCAPIF)
     participant P as Provider App (NEF)
 
-    xApp->>C: Request API data (location api) + expose notificationDestination URL
+    xApp->>I: Request API data (location api) + expose notificationDestination URL
     Note right of xApp: xApp stays outside CAPIF
 
     C->>CAPIF: Register User (register_and_login.py + capif_sdk_register.json)
@@ -126,11 +126,11 @@ sequenceDiagram
     P->>CAPIF: Onboard & Publish Service (provider_capif_connector.py + provider_configuration_sample.json + openapi.yaml)
     CAPIF-->>P: capif_cert_server.pem (stored under provider folder/)
 
-    C->>CAPIF: Onboard & Discover Services (invoker_capif_connector.py + invoker_configuration_sample.json)
-    CAPIF-->>C: JWT Token + Service Info
+    I->>CAPIF: Onboard & Discover Services (invoker_capif_connector.py + invoker_configuration_sample.json)
+    CAPIF-->>I: JWT Token + Service Info
 
-    C->>P: Send Request with JWT Token
+    I->>P: Send Request with JWT Token
     P->>CAPIF: Verify JWT Token (using capif_cert_server.pem)
-    P-->>C: Authorized Response
+    P-->>I: Authorized Response
 
-    C-->>xApp: Callback with API Data (asynchronous)
+    I-->> xApp: Callback with API Data (asynchronous)
