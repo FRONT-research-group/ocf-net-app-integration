@@ -111,20 +111,26 @@ Also make sure to create a virtual environment and install `requirements.txt` fi
 
 ```mermaid
 sequenceDiagram
-    participant U as User
-    participant CAPIF as OpenCAPIF
-    participant P as Provider App
+    participant xApp
+    participant C as CAPIF User <br/> (Invoker / Provider)
     participant I as Invoker App
+    participant CAPIF as CAPIF (OpenCAPIF)
+    participant P as Provider App (NEF)
 
-    U->>CAPIF: Register User (register_and_login.py + capif_sdk_register.json)
-    CAPIF-->>U: User registered (can act as Provider/Invoker)
+    xApp->>C: Request API data (location api) + expose notificationDestination URL
+    Note right of xApp: xApp stays outside CAPIF
+
+    C->>CAPIF: Register User (register_and_login.py + capif_sdk_register.json)
+    CAPIF-->>C: User registered (can act as Provider/Invoker)
 
     P->>CAPIF: Onboard & Publish Service (provider_capif_connector.py + provider_configuration_sample.json + openapi.yaml)
-    CAPIF-->>P: capif_cert_server.pem (stored under provider_folder/)
+    CAPIF-->>P: capif_cert_server.pem (stored under provider folder/)
 
-    I->>CAPIF: Onboard & Discover Services (invoker_capif_connector.py + invoker_configuration_sample.json)
-    CAPIF-->>I: JWT Token + Service Info
+    C->>CAPIF: Onboard & Discover Services (invoker_capif_connector.py + invoker_configuration_sample.json)
+    CAPIF-->>C: JWT Token + Service Info
 
-    I->>P: Send Request with JWT Token
-    P->>CAPIF: Verify JWT Token using capif_cert_server.pem
-    P-->>I: Authorized Response
+    C->>P: Send Request with JWT Token
+    P->>CAPIF: Verify JWT Token (using capif_cert_server.pem)
+    P-->>C: Authorized Response
+
+    C-->>xApp: Callback with API Data (asynchronous)
