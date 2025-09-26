@@ -3,8 +3,8 @@
   "register_host": "10.220.2.43",
   "capif_https_port": "443",
   "capif_register_port": "8084",
-  "capif_username": "custom_user1",
-  "capif_password": "user_pass1",
+  "capif_username": "ppavlidis",
+  "capif_password": "ppavlidis",
   "debug_mode": "True",
   "invoker": {
     "invoker_folder": "./invoker_folder/",
