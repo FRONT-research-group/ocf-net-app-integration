@@ -4,7 +4,7 @@ import uvicorn
 from fastapi import FastAPI, Request
 import time
 
-HOST, PORT = "127.0.0.1", 8004   # Localhost only
+HOST, PORT = "0.0.0.0", 8004   # Localhost only
 ENDPOINT = "/receive"
 
 app = FastAPI()
@@ -26,10 +26,11 @@ def start_server():
 
 
 def send_manual(payload):
-    payload = {"notificationDestination": "http://{HOST}:{PORT}{ENDPOINT}".format(HOST=HOST,PORT=PORT), **payload}
-    url = "http://127.0.0.1:8001/location"
-    resp = httpx.post(url, json=payload)
-    print("[Client] Response:", resp.json())
+    payload = {"notificationDestination": f"http://host.docker.internal:{PORT}{ENDPOINT}", **payload}
+    url = "http://localhost:8008/invoker-app/v1/location"
+    print(f"[Client] Sending to {url} payload: {payload}")
+    headers = {"accept": "application/json", "Content-Type": "application/json"}
+    httpx.post(url,headers=headers, json=payload)
 
 
 if __name__ == "__main__":
@@ -42,6 +43,7 @@ if __name__ == "__main__":
     try:
         while True:
             msg = input("Message> ")
+            print(f"[Main] Sending message: {msg}")
             payload = {"msisdn": msg}
             send_manual(payload)
     except KeyboardInterrupt:

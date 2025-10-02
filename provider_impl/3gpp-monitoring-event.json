@@ -2,7 +2,7 @@
     "apiName": "3gpp-monitoring-event",
     "aefProfiles": [
         {
-            "aefId": "AEF9a8856d9b5bf2a58914311046e0e61",
+            "aefId": "AEF0fc4c26cc5d28b901edecd83ab20d3",
             "versions": [
                 {
                     "apiVersion": "v1",
@@ -98,7 +98,7 @@
                     "securityMethods": [
                         "OAUTH"
                     ],
-                    "ipv4Addr": "10.220.2.73"
+                    "ipv4Addr": "127.0.0.1"
                 }
             ]
         }

@@ -1,25 +1,37 @@
-from fastapi import APIRouter, status, Request
+from fastapi import APIRouter, status
 
 
-from app.schemas.location_fetch import MonitoringEventReport
+from app.schemas.location_fetch import MonitoringEventReport, LocationRequset
 from app.services import location_fetcher as loc_service
+from app.invoker_onboarding.invoker_capif_connector import onboard_invoker
 
 router = APIRouter()
 invoices_callback_router = APIRouter()
 
 @invoices_callback_router.post("{$request.body.notificationDestination}", description="No Content (successful notification)", response_model=None)
-async def send_notification(callback_url: str,) -> None:
+async def send_notification(callback_url: str) -> None:
     '''Exposure for Swagger Documentation'''
-    pass
 
 @router.post(
         "/location",
         description="Get a location for an imsi",
         tags=["Location Fetch API"],
-        responses={status.HTTP_200_OK:{"model":MonitoringEventReport, "description": "200 OK"},
-                   status.HTTP_404_NOT_FOUND: {"description":"404 Not Found"},},
+        responses={status.HTTP_202_ACCEPTED: {"model": dict, "description": "Request is being processed"}},
         response_model_exclude_unset=True,
         callbacks=invoices_callback_router.routes)
-async def get_location(request: Request) -> None:
-    payload = await request.json()
+async def get_location(loc_req: LocationRequset) -> None:
+    """
+    Asynchronously fetches location information based on the provided location request.
+
+    Args:
+        loc_req (LocationRequset): The location request object containing parameters for location retrieval.
+
+    Returns:
+        None: This function does not return anything explicitly.
+
+    Raises:
+        Any exceptions raised by onboard_invoker or loc_service.get_location.
+    """
+    onboard_invoker()
+    payload = loc_req.model_dump()
     return await loc_service.get_location(payload)

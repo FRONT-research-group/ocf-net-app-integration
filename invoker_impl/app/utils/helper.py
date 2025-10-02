@@ -1,9 +1,14 @@
 '''helper class to build and send http request'''
-import httpx
+import requests
+from requests.exceptions import Timeout, HTTPError, RequestException
+from fastapi import HTTPException
 
 from app.utils.exceptions import TokenFileError
 from app.schemas.location_fetch import MonitoringEventSubscriptionRequest, MonitoringType, LocationType
 from app.utils.logger import get_app_logger
+from app.dependecies import get_task_registry
+
+task_registry = get_task_registry()
 
 log = get_app_logger()
 
@@ -17,7 +22,6 @@ def build_monitoring_event_subscription(xapp_payload_request: dict
         monitoringType=MonitoringType.LOCATION_REPORTING,
         locationType=LocationType.LAST_KNOWN
     )
-
 
 def extract_callback_url(xapp_payload_request: dict) -> str:
     """Extracts the callback URL from the given xApp payload."""
@@ -45,7 +49,7 @@ def _read_access_token_from_file(file_path: str) -> str:
     except IOError as exc:
         raise TokenFileError(f"Error reading token file: {exc}") from exc
         
-async def build_send_http_request(url : str, access_token_path: str | None, payload: dict) -> httpx.Response:
+async def build_send_http_request(url : str, access_token_path: str | None, payload: dict, task_id :str) -> requests.Response:
     """
     Asynchronously builds and sends an HTTP POST request to the specified URL with an 
     authorization header.
@@ -67,25 +71,31 @@ async def build_send_http_request(url : str, access_token_path: str | None, payl
         token = _read_access_token_from_file(access_token_path)
 
         headers = {
-            "Authorization": token
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token}"
         }
     else:
         headers = {}
 
     try:
-        async with httpx.AsyncClient() as client:
             log.info("Sending POST request to %s with payload: %s and headers: %s",url,payload,headers)
 
-            response = await client.post(url, headers=headers,json=payload)
+            response = requests.post(url, json=payload, headers=headers, timeout=10)
             response.raise_for_status()
             
-            print(f"Status Code: {response.status_code}")
-            print("Success:", response.json())
+            log.info("Status Code: %s",response.status_code)
+            log.info("Success: %s", response.json())
 
             return response
-    except httpx.TimeoutException:
-        print("Request timed out.")
-    except httpx.HTTPStatusError as exc:
-        print(f"Error response {exc.response.status_code}: {exc.response.text}")
-    except httpx.RequestError as exc:
-        print(f"An error occurred while requesting {exc.request.url!r}: {exc}")
+    except Timeout:
+        log.error("Request timed out.")
+        task_registry[task_id].cancel()
+    except HTTPError as exc:
+        raise HTTPException(
+            status_code=exc.response.status_code,
+            detail=exc.response.text
+        ) from exc
+    except RequestException as exc:
+        log.error("An error occurred while requesting %s:%s",exc.request.url,exc)
+        task_registry[task_id].cancel()

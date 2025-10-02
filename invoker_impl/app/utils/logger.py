@@ -11,8 +11,8 @@ def check_log_path_exists():
     '''
         Docstring
     '''
-    if not os.path.exists(settings.log_directory_path):
-        os.makedirs(settings.log_directory_path)
+    if not os.path.exists(settings.invoker_log_directory_path):
+        os.makedirs(settings.invoker_log_directory_path)
 
 
 def get_app_logger():
@@ -33,7 +33,7 @@ def get_app_logger():
             datefmt='%Y-%m-%d:%H:%M:%S')
 
         #10 MB max per file, 5 files max
-        file_handler = RotatingFileHandler(settings.log_filename_path + ".log",
+        file_handler = RotatingFileHandler(settings.invoker_log_filename_path + ".log",
                                            maxBytes=10*1024*1024,
                                            backupCount=5)
         file_handler.setLevel(logging.DEBUG)

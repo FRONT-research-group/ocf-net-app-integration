@@ -86,3 +86,6 @@ class MonitoringEventSubscriptionRequest(BaseModel):
     repPeriod: Optional[DurationSec] = Field(None,description="Identifies the periodic time for the event reports.")
     minimumReportInterval: Optional[DurationSec] = Field(None,description="identifies a minimum time interval between Location Reporting notifications")
 
+class LocationRequset(BaseModel):
+    msisdn: str = Field(...,description="Identifies the MS internal PSTN/ISDN number allocated for a UE.")
+    notificationDestination: AnyHttpUrl = Field(..., description="URI of a notification destination that the T8 message shall be delivered to.")

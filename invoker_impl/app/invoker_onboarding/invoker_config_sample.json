@@ -7,7 +7,7 @@
   "capif_password": "ppavlidis",
   "debug_mode": "True",
   "invoker": {
-    "invoker_folder": "./invoker_folder/",
+    "invoker_folder": "./app/invoker_folder/",
     "capif_callback_url": "http://localhost:5000",
     "supported_features": "0",
     "check_authentication_data": {
