@@ -62,13 +62,40 @@ The repository includes:
    - The provider verifies the JWT token against the CAPIF certificate (`capif_cert_server.pem`) to authorize requests.
 
 ---
+## 📦 Prerequisites for Execution Guide  
+
+Before deploying the full OpenCAPIF integration template, make sure the following are available:
+
+1. **Running OpenCAPIF Instance**  
+   You need a deployed and properly configured [OpenCAPIF](https://labs.etsi.org/rep/ocf/capif) and its [OpenCAPIF SDK](https://labs.etsi.org/rep/ocf/sdk).
+
+2. **Python Environment**  
+   - Create and activate a virtual environment.  
+   - Install dependencies from `requirements.txt`.
+   - These are used for **User Registration** and **Start the xAPP** steps  
+
+3. **Docker & Make**  
+   - Ensure both `docker` and `make` are installed for automated deployment.
+
+4. **SFTP Server (Mandatory)**  
+   The deployment requires access to an **SFTP server** where capif_cert_server.pem certificate will be uploaded in order to be used from the provider app.  
+   - Use the provided script to configure the SFTP server:  
+     ```bash
+     ./sftp_server_management.sh
+     ```
+   - The script allows you to define:  
+     - **Server IP & Port**  
+     - **Username & Password**  
+     - **Files to import into the SFTP server**  
+
+   Both **Provider** and **Invoker** onboarding flows depend on this certificate being properly accessible via SFTP in order provider authorize requests.  
+
+⚠️ **Important:** Make sure the SFTP server is deployed and running  **before** executing `make deploy`. Without it, provider onboarding and deployment will fail since CAPIF certificate cannot be retrieved or uploaded.  
 
 ## ⚡ Execution Guide
 
 This section describes how to run the repository step by step.  
-Make sure you have a running instance of [OpenCAPIF](https://labs.etsi.org/rep/ocf/capif) and the [OpenCAPIF SDK](https://labs.etsi.org/rep/ocf/sdk) properly configured.  
-Also make sure to create a virtual environment and install `requirements.txt` file before executing the steps below for **user registration** and **xAPP** python scripts.  
-Lastly, make sure that you have **docker** and **make** installed.  
+
 Before the execution steps see more information for the deployment of the template in the **Notes** section at the end of that section.
 
 1. **User Registration**
@@ -111,20 +138,33 @@ Run the xAPP dummy app to consume invoker's api and receive provider's app data:
 cd ocf-net-app-integration/xAPP
 python dummy_app.py
 ```
-**Notes**:  
-**Deployment automation**  
-Steps 2,3,4 is composed in one docker compose file that is deployed via a make target rule. Having that in mind for step 2,3,4 you can just run the following:
+## 📝 Notes
+
+### Deployment Automation
+- Steps **2, 3, and 4** (Provider onboarding, Invoker onboarding, and Invoker app startup) are bundled into a single **docker-compose** stack.
+- You can deploy them together with:
 ```bash
 cd ocf-net-app-integration/
 make deploy
 ```
-One more step to have in mind is that while make deploy is called, **docker creates** if not exist, a **external docker network** that needs to communicate with an external provider application.  
-That resource then should be declared appropriately in the **docker-compose.yaml**.  
-**Deployment uninstall**  
-For undeploy, run the make target below and after the undeploy of the provider app as well you should run `docker network rm shared` or the `make clean` target again to remove the external docker network.
+
+During deployment, **Docker will create (if not already present) an external network** to enable communication with an external provider application.  
+
+Make sure this external resource, after the creation via **Make target rule**, is properly defined in the `docker-compose.yaml` file.  
+
+⚠️ **Before running `make deploy`, ensure that the SFTP server is running and configured** (see [📦 Prerequisites](#-prerequisites-for-execution-guide))
+
+### Deployment Uninstall  
+
+To undeploy the stack, run:  
 ```bash
 cd ocf-net-app-integration/
 make clean
+```
+`make clean` should remove the created containers, volumes, and the external network.  
+If the external Docker network still exists, remove it manually or run again the `make clean`, after undeploying the provider app resource dependency:  
+```bash
+docker network rm shared
 ```
 ---
 
@@ -160,7 +200,7 @@ sequenceDiagram
 
 ## 📊 FlowChart Diagram
 ```mermaid
-flowchart LR
+flowchart TD
     %% User creation
     A[Local Python Script] -->|Create User| B["User (Invoker/Provider)"]
     B --> C[make deploy]
@@ -168,29 +208,49 @@ flowchart LR
     %% Deployment stack
     C --> D[Docker Compose Stack]
 
-    %% Provider onboarding
+    %% Independent CAPIF and xAPP
+    subgraph CAPIFBlock [CAPIF]
+        F[CAPIF - OpenCAPIF]
+    end
+    subgraph xAPPBlock [xAPP]
+        K[Dummy xAPP]
+    end
+    subgraph SFTPBlock [SFTP]
+        Z[SFTP SERVER]
+    end
+
+    %% Provider onboarding (top container)
     subgraph Onboarding [1. Provider Onboarding]
-        E[Provider Onboarding Container] -->|1.1 Onboard Provider| F[CAPIF]
-        E -->|1.2 Upload Cert to a SFTP| G[capif_cert_server.pem]
+        direction LR
+        E[Provider Onboarding Container]
+        G[capif_cert_server.pem]
+        E -->|1.3 Upload Cert capif_cert_server.pem to SFTP| Z
+        E -->|1.1 Onboard Provider| F
+        F -->|1.2 Send back CERT capif_cert_server.pem| E
+    end
+
+    %% Invoker onboarding (bottom container)
+    subgraph Invoker [2. Invoker Flow]
+        direction LR
+        H[Invoker Container]
+        I[Token File or In-Memory]
+        H -->|2.2 Onboard Invoker| F
+        H -->|2.3 Save JWT| I     
     end
 
     %% Independent Provider App
     J[Provider App]
 
-    %% Invoker onboarding
-    subgraph Invoker [2. Invoker Flow]
-        H[Invoker Container] -->|2.1 Onboard Invoker| F
-        H -->|2.2 Save JWT| I[Token File or In-Memory]     
-    end
+    %% Connections from deployment
+    D --> Onboarding
+    D --> Invoker
 
-    I --> J
-
-    D --> E
-    D --> H
-
-    %% xApp interaction
-    K[Dummy xAPP] -->|2.3 Request| H
+    %% xAPP interaction (separate horizontal flow)
+    K -->|2.1 Request| H
     H -->|2.4 Perform Request with JWT token| J
     J -->|2.5 Provider Response| H
     H -->|2.6 Deliver Data| K
+    I --> J
+
+
 ```
