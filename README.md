@@ -180,7 +180,7 @@ flowchart LR
     %% Invoker onboarding
     subgraph Invoker [2. Invoker Flow]
         H[Invoker Container] -->|2.1 Onboard Invoker| F
-        H -->|2.2 Save JWT| I[Token File]     
+        H -->|2.2 Save JWT| I[Token File or In-Memory]     
     end
 
     I --> J
