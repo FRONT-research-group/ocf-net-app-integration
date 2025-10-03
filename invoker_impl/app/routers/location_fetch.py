@@ -1,9 +1,12 @@
 from fastapi import APIRouter, status
 
 
-from app.schemas.location_fetch import MonitoringEventReport, LocationRequset
+from app.schemas.location_fetch import LocationRequset
 from app.services import location_fetcher as loc_service
 from app.invoker_onboarding.invoker_capif_connector import onboard_invoker
+from app.utils.logger import get_app_logger
+
+logger = get_app_logger(__name__)
 
 router = APIRouter()
 invoices_callback_router = APIRouter()
@@ -32,6 +35,7 @@ async def get_location(loc_req: LocationRequset) -> None:
     Raises:
         Any exceptions raised by onboard_invoker or loc_service.get_location.
     """
-    onboard_invoker()
+    jwt_token = onboard_invoker()
+    logger.info("Obtained JWT Token: %s", jwt_token)
     payload = loc_req.model_dump()
-    return await loc_service.get_location(payload)
+    return await loc_service.get_location(payload, jwt_token)

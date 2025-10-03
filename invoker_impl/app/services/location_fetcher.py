@@ -8,13 +8,13 @@ from app.config import get_settings
 from app.utils.logger import get_app_logger
 from app.dependecies import get_task_registry
 
-log = get_app_logger()
+log = get_app_logger(__name__)
 
 settings = get_settings()
 
 task_registry = get_task_registry()
 
-async def send_net_req_and_loc_notification(url,access_token_file, payload: dict, task_id: str) -> None:
+async def send_net_req_and_loc_notification(url,jwt_token :str, payload: dict, task_id: str) -> None:
     """
     Sends a network request and location notification asynchronously.
 
@@ -37,7 +37,7 @@ async def send_net_req_and_loc_notification(url,access_token_file, payload: dict
     callback_url = extract_callback_url(payload)
     monitoring_event_request_body = build_monitoring_event_subscription(payload)
     try:
-        resp = await build_send_http_request(url, access_token_file, monitoring_event_request_body.model_dump(mode='json',exclude_none=True, by_alias=True),task_id)
+        resp = await build_send_http_request(url, jwt_token, monitoring_event_request_body.model_dump(mode='json',exclude_none=True, by_alias=True),task_id)
         xapp_response_body = resp.json()
         await build_send_http_request(str(callback_url), None, xapp_response_body,task_id)
     except HTTPException as exc:
@@ -60,7 +60,7 @@ async def send_net_req_and_loc_notification(url,access_token_file, payload: dict
         log.info("Task registry after removal: %s", task_registry)
 
 
-async def get_location(payload: dict) -> None:
+async def get_location(payload: dict, jwt_token: str) -> None:
     """
     Asynchronously initiates a location fetch request by creating a background task to send a network request and notification.
     Stores the task in a registry using a generated UUID and returns an HTTP 202 response with the task ID.
@@ -72,9 +72,9 @@ async def get_location(payload: dict) -> None:
         JSONResponse: HTTP 202 Accepted response with a message and the generated task ID.
     """
     url = settings.provider_target_url
-    access_token_file = settings.invoker_access_token_file
+    # access_token_file = settings.invoker_access_token_file
     task_uuid = str(uuid.uuid4())
-    task = asyncio.create_task(send_net_req_and_loc_notification(url,access_token_file, payload,str(task_uuid)))
+    task = asyncio.create_task(send_net_req_and_loc_notification(url,jwt_token, payload,str(task_uuid)))
 
     task_registry[task_uuid] = task
 

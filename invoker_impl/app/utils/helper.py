@@ -10,7 +10,7 @@ from app.dependecies import get_task_registry
 
 task_registry = get_task_registry()
 
-log = get_app_logger()
+log = get_app_logger(__name__)
 
 def build_monitoring_event_subscription(xapp_payload_request: dict
     ) -> MonitoringEventSubscriptionRequest:
@@ -49,7 +49,7 @@ def _read_access_token_from_file(file_path: str) -> str:
     except IOError as exc:
         raise TokenFileError(f"Error reading token file: {exc}") from exc
         
-async def build_send_http_request(url : str, access_token_path: str | None, payload: dict, task_id :str) -> requests.Response:
+async def build_send_http_request(url : str, jwt_token: str | None, payload: dict, task_id :str) -> requests.Response:
     """
     Asynchronously builds and sends an HTTP POST request to the specified URL with an 
     authorization header.
@@ -67,8 +67,9 @@ async def build_send_http_request(url : str, access_token_path: str | None, payl
     Raises:
         Any exceptions raised by httpx or file reading operations.
     """
-    if access_token_path is not None:
-        token = _read_access_token_from_file(access_token_path)
+    if jwt_token is not None:
+        #token = _read_access_token_from_file(access_token_path)
+        token = jwt_token
 
         headers = {
             "Accept": "application/json",

@@ -8,7 +8,7 @@ from app.utils.logger import get_app_logger
 
 settings = get_settings()
 
-logger = get_app_logger()
+logger = get_app_logger(__name__)
 logger.info("Starting INVOKER APP")
 logger.info("Host: %s, Port: %s", settings.invoker_host, settings.invoker_port)
 logger.info("Log Directory Path: %s", settings.invoker_log_directory_path)

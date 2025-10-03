@@ -24,7 +24,7 @@ def _write_to_file(filename, content):
         f.write(content)
     print(f"Wrote content to {filename}")
 
-def onboard_invoker() -> None:
+def onboard_invoker() -> str:
     """
     Onboards an invoker to the CAPIF system, discovers available services, retrieves a JWT access token, 
     prints it, and writes it to a file.
@@ -52,6 +52,8 @@ def onboard_invoker() -> None:
     discoverer_svc.get_tokens()
     jwt_token=discoverer_svc.token
 
-    print("JWT TOKEN: ", jwt_token)
+    return jwt_token
 
-    _write_to_file(INVOKER_ACCESS_TOKEN_FILE, jwt_token)
+    # print("JWT TOKEN: ", jwt_token)
+
+    # _write_to_file(INVOKER_ACCESS_TOKEN_FILE, jwt_token)

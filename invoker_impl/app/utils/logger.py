@@ -15,17 +15,17 @@ def check_log_path_exists():
         os.makedirs(settings.invoker_log_directory_path)
 
 
-def get_app_logger():
+def get_app_logger(logger_name : str):
     '''
         Docstring
     '''
 
     check_log_path_exists()
 
-    app_logger = logging.getLogger('local_allocation_manager')
+    app_logger = logging.getLogger(logger_name)
 
     if not app_logger.handlers:
-        logger = logging.getLogger('local_allocation_manager')
+        logger = logging.getLogger(logger_name)
         logger.setLevel(logging.DEBUG)
 
         formatter = logging.Formatter(
