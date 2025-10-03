@@ -89,7 +89,7 @@ Before the execution steps see more information for the deployment of the templa
    
   Onboard the invoker and discover available services.
   ```bash
-  cd ocf-net-app-integration/invoker_impl
+  cd ocf-net-app-integration/invoker_impl/app/invoker_onboarding/
   python invoker_capif_connector.py
   ```
 4. **Start the Invoker App**
