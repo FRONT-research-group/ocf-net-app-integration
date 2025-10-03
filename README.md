@@ -118,6 +118,8 @@ Steps 2,3,4 is composed in one docker compose file that is deployed via a make t
 cd ocf-net-app-integration/
 make deploy
 ```
+One more step to have in mind is that while make deploy is called, **docker creates** if not exist, a **external docker network** that needs to communicate with an external provider application.  
+That resource then should be declared appropriately in the **docker-compose.yaml**.  
 **Deployment uninstall**  
 For undeploy, run the make target below and after the undeploy of the provider app as well you should run `docker network rm shared` or the `make clean` target again to remove the external docker network.
 ```bash
