@@ -166,6 +166,12 @@ If the external Docker network still exists, remove it manually or run again the
 ```bash
 docker network rm shared
 ```
+
+### Offboarding from CAPIF
+
+Currently, offboarding the provider or invoker from the CAPIF is not supported, so anyone can undeploy the capif and redeploy again to have a clean setup.  
+Keep in mind that, after onboarding the provider in CAPIF, it can not onboard again, unless offboard takes place.
+
 ---
 
 ## 📊 Sequence Diagram
