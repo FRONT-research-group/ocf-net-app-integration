@@ -37,7 +37,7 @@ The repository includes:
   - `<provider/invoker>_config_sample.json`: Input for onboarding scripts (provider/invoker).
   - `capif_sdk_register.json`: Input for user registration.
   - `openapi.yaml`: The OpenAPI specification for the provider app service (used during service publication).
-  - `.env`: File that includes environmental variables that is used in the bussiness flow for invoker/provider onboarding as well as invoker app.
+  - `.env`: File that includes environmental variables that is used in the bussiness flow for invoker/provider onboarding as well as invoker app. From there, anyone can configure either current location or last known location feature for provider app (NEF).
 
 ---
 
@@ -169,8 +169,13 @@ docker network rm shared
 
 ### Offboarding from CAPIF
 
-Currently, offboarding the provider or invoker from the CAPIF is not supported, so anyone can undeploy the capif and redeploy again to have a clean setup.  
-Keep in mind that, after onboarding the provider in CAPIF, it can not onboard again, unless offboard takes place.
+Currently, offboarding invoker from the CAPIF is not supported, so anyone can undeploy the capif and redeploy again to have a clean setup.  
+Offboarding the provider from the CAPIF is supported for a more robust experimentation, by executing the **provider_offboard.py** script after copying the provider_folder of the configured user from the container to a local folder.
+For example:
+```bash
+docker cp provider_onboard:/app/provider_folder/ppavlidis/ ./provider_folder/ppavlidis/
+python provider_offboard.py
+```
 
 ---
 
