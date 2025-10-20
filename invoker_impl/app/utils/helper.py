@@ -3,19 +3,46 @@ import requests
 from requests.exceptions import Timeout, HTTPError, RequestException
 from fastapi import HTTPException
 
+from app.schemas.location_fetch import DurationSec
 from app.utils.exceptions import TokenFileError
 from app.schemas.location_fetch import MonitoringEventSubscriptionRequest, MonitoringType, LocationType
 from app.utils.logger import get_app_logger
-from app.dependecies import get_task_registry
+from app.dependencies import get_task_registry
+from app.config import get_settings
 
 task_registry = get_task_registry()
 
+settings = get_settings()
+
 log = get_app_logger(__name__)
 
-def build_monitoring_event_subscription(xapp_payload_request: dict
-    ) -> MonitoringEventSubscriptionRequest:
+def build_monitoring_event_subscription(xapp_payload_request: dict, current_loc_enabled: bool) -> MonitoringEventSubscriptionRequest:
     """Builds a MonitoringEventSubscriptionRequest from the given xApp payload."""
-        
+
+    log.info("Building monitoring event subscription request with current_loc_enabled=%s", current_loc_enabled)
+    
+
+    if current_loc_enabled:
+        log.info("Current location reporting is enabled.")
+        max_num_reports = settings.current_loc_max_num_reports
+        rep_period = settings.current_loc_rep_period
+        log.info("maxNumReports: %s", max_num_reports)
+        log.info("repPeriod: %s", rep_period)
+        try:
+            obj = MonitoringEventSubscriptionRequest(
+                    #msisdn=xapp_payload_request["msisdn"].lstrip("+"),
+                    msisdn=xapp_payload_request["msisdn"],
+                    notificationDestination=settings.notification_destination,
+                    monitoringType=MonitoringType.LOCATION_REPORTING,
+                    locationType=LocationType.CURRENT_LOCATION,
+                    maximumNumberOfReports=max_num_reports,
+                    repPeriod=DurationSec(duration=rep_period)
+                    )
+            log.info("Constructed request: %s", obj)
+            return obj
+        except Exception as exc:
+            log.error("Error constructing MonitoringEventSubscriptionRequest: %s", exc)
+            raise
     return MonitoringEventSubscriptionRequest(
         msisdn=xapp_payload_request["msisdn"].lstrip("+"),
         notificationDestination=xapp_payload_request["notificationDestination"],
@@ -25,6 +52,9 @@ def build_monitoring_event_subscription(xapp_payload_request: dict
 
 def extract_callback_url(xapp_payload_request: dict) -> str:
     """Extracts the callback URL from the given xApp payload."""
+
+    log.info("Extracting callback URL from payload")
+
     return xapp_payload_request["notificationDestination"]
 
 def _read_access_token_from_file(file_path: str) -> str:

@@ -6,13 +6,15 @@ from fastapi.responses import JSONResponse
 from app.utils.helper import build_send_http_request, build_monitoring_event_subscription, extract_callback_url
 from app.config import get_settings
 from app.utils.logger import get_app_logger
-from app.dependecies import get_task_registry
+from app.dependencies import get_task_registry, get_callback_data_queue
 
 log = get_app_logger(__name__)
 
 settings = get_settings()
 
 task_registry = get_task_registry()
+
+callback_data_queue = get_callback_data_queue()
 
 async def send_net_req_and_loc_notification(url,jwt_token :str, payload: dict, task_id: str) -> None:
     """
@@ -35,11 +37,24 @@ async def send_net_req_and_loc_notification(url,jwt_token :str, payload: dict, t
         asyncio.CancelledError: If the task is cancelled.
     """
     callback_url = extract_callback_url(payload)
-    monitoring_event_request_body = build_monitoring_event_subscription(payload)
+    monitoring_event_request_body = build_monitoring_event_subscription(payload,settings.current_loc_enabled)
+    log.info("Constructed monitoring event request body: %s", monitoring_event_request_body)
     try:
+        log.info("Sending monitoring event subscription request to %s with request body %s", url, monitoring_event_request_body)
         resp = await build_send_http_request(url, jwt_token, monitoring_event_request_body.model_dump(mode='json',exclude_none=True, by_alias=True),task_id)
-        xapp_response_body = resp.json()
-        await build_send_http_request(str(callback_url), None, xapp_response_body,task_id)
+        if settings.current_loc_enabled:
+            log.info("Current location reporting is enabled, waiting for callback data...")
+            counter : int = 0
+            while counter < settings.current_loc_max_num_reports:
+                counter += 1
+                xapp_response_body = await callback_data_queue.get()
+                log.info("Sending response to callback URL %s with body %s", str(callback_url), xapp_response_body)
+                await build_send_http_request(str(callback_url), None, xapp_response_body,task_id)
+        else:
+            log.info("Last known location reporting is enabled, proceeding with immediate data report.")
+            xapp_response_body = resp.json()
+            log.info("Sending response to callback URL %s with body %s", str(callback_url), xapp_response_body)
+            await build_send_http_request(str(callback_url), None, xapp_response_body,task_id)
     except HTTPException as exc:
         log.error("Error response %s: %s", exc.status_code, exc.detail)
         error_payload = {

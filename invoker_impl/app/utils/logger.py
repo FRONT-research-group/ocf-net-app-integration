@@ -25,8 +25,8 @@ def get_app_logger(logger_name : str):
     app_logger = logging.getLogger(logger_name)
 
     if not app_logger.handlers:
-        logger = logging.getLogger(logger_name)
-        logger.setLevel(logging.DEBUG)
+        #logger = logging.getLogger(logger_name)
+        app_logger.setLevel(logging.DEBUG)
 
         formatter = logging.Formatter(
             '%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
@@ -43,9 +43,10 @@ def get_app_logger(logger_name : str):
         stream_handler.setLevel(logging.INFO)
         stream_handler.setFormatter(formatter)
 
-        logger.addHandler(file_handler)
-        logger.addHandler(stream_handler)
+        app_logger.addHandler(file_handler)
+        app_logger.addHandler(stream_handler)
+        app_logger.propagate = False
 
-        return logger
+        return app_logger
 
     return app_logger
