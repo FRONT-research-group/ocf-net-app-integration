@@ -4,7 +4,7 @@ This repository provides a **template** for integrating the [OpenCAPIF](https://
 
 It demonstrates how to onboard and authenticate **Provider** and **Invoker** applications through OpenCAPIF, using **FastAPI** for both service exposure and consumption.  
 
-The current implementation showcases the **NEF MonitoringEvent API** as an example of a provider app that has been adjusted in order to support integration with the OpenCAPIF template and stored at [FRONT's](https://github.com/FRONT-research-group/NEF/tree/integrate_security) github repo.
+The current implementation showcases the **NEF MonitoringEvent API** as an example of a provider app that has been adjusted in order to support integration with the OpenCAPIF template and stored at [FRONT's](https://github.com/FRONT-research-group/NEF) github repo.
 
 ---
 
