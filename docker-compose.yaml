@@ -1,15 +1,15 @@
 services:
-  provider_app:
-    build:
-      context: .
-      dockerfile: ./provider_impl/Dockerfile
-    container_name: provider_onboard
-    restart: on-failure
-    env_file: .env
-    ports:
-      - "8000"
-    networks:
-      - ocf-integration-network
+  # provider_app:
+  #   build:
+  #     context: .
+  #     dockerfile: ./provider_impl/Dockerfile
+  #   container_name: provider_onboard
+  #   restart: on-failure
+  #   env_file: .env
+  #   ports:
+  #     - "8000"
+  #   networks:
+  #     - ocf-integration-network
   invoker_app:
     build:
       context: .
@@ -22,10 +22,10 @@ services:
     ports:
       - "8008:8000"
     networks:
-      - ocf-integration-network
+      # - ocf-integration-network
       - shared
 networks:
-  ocf-integration-network:
-    driver: bridge
+  # ocf-integration-network:
+  #   driver: bridge
   shared:
     external: true

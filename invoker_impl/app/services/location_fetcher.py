@@ -39,12 +39,12 @@ async def send_net_req_and_loc_notification(url,jwt_token :str, payload: dict, t
     callback_url = extract_callback_url(payload)
     monitoring_event_request_body = build_monitoring_event_subscription(payload,settings.current_loc_enabled)
     log.info("Constructed monitoring event request body: %s", monitoring_event_request_body)
+    counter : int = 0
     try:
         log.info("Sending monitoring event subscription request to %s with request body %s", url, monitoring_event_request_body)
         resp = await build_send_http_request(url, jwt_token, monitoring_event_request_body.model_dump(mode='json',exclude_none=True, by_alias=True),task_id)
         if settings.current_loc_enabled:
             log.info("Current location reporting is enabled, waiting for callback data...")
-            counter : int = 0
             while counter < settings.current_loc_max_num_reports:
                 counter += 1
                 xapp_response_body = await callback_data_queue.get()
@@ -70,9 +70,11 @@ async def send_net_req_and_loc_notification(url,jwt_token :str, payload: dict, t
             "code": 500,
             "detail": "Task was cancelled"
         }
+        await build_send_http_request(str(callback_url), None, error_payload,task_id)
     finally:
-        task_registry.pop(task_id)
-        log.info("Task registry after removal: %s", task_registry)
+        if counter == 3 or asyncio.current_task().cancelled() or settings.current_loc_enabled is False:
+            task_registry.pop(task_id)
+            log.info("Task registry after removal: %s", task_registry)
 
 
 async def get_location(payload: dict, jwt_token: str) -> None:

@@ -38,7 +38,7 @@ def build_monitoring_event_subscription(xapp_payload_request: dict, current_loc_
                     maximumNumberOfReports=max_num_reports,
                     repPeriod=DurationSec(duration=rep_period)
                     )
-            log.info("Constructed request: %s", obj)
+            #log.info("Constructed request: %s", obj)
             return obj
         except Exception as exc:
             log.error("Error constructing MonitoringEventSubscriptionRequest: %s", exc)
