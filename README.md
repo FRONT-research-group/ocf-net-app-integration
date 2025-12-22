@@ -77,7 +77,7 @@ Before deploying the full OpenCAPIF integration template, make sure the followin
 3. **Docker & Make**  
    - Ensure both `docker` and `make` are installed for automated deployment.
 
-4. **SFTP Server (Mandatory)**  
+4. **SFTP Server (Mandatory if docker compose provider profile is enabled)**  
    The deployment requires access to an **SFTP server** where capif_cert_server.pem certificate will be uploaded in order to be used from the provider app.  
    - Use the provided script to configure the SFTP server:  
      ```bash
@@ -209,7 +209,7 @@ sequenceDiagram
 ```
 ---
 
-## 📊 FlowChart Diagram
+## 📊 FlowChart Diagram (via SFTP Case)
 ```mermaid
 flowchart TD
     %% User creation
@@ -236,6 +236,61 @@ flowchart TD
         E[Provider Onboarding Container]
         G[capif_cert_server.pem]
         E -->|1.3 Upload Cert capif_cert_server.pem to SFTP| Z
+        E -->|1.1 Onboard Provider| F
+        F -->|1.2 Send back CERT capif_cert_server.pem| E
+    end
+
+    %% Invoker onboarding (bottom container)
+    subgraph Invoker [2. Invoker Flow]
+        direction LR
+        H[Invoker Container]
+        I[Token File or In-Memory]
+        H -->|2.2 Onboard Invoker| F
+        H -->|2.3 Save JWT| I     
+    end
+
+    %% Independent Provider App
+    J[Provider App]
+
+    %% Connections from deployment
+    D --> Onboarding
+    D --> Invoker
+
+    %% xAPP interaction (separate horizontal flow)
+    K -->|2.1 Request| H
+    H -->|2.4 Perform Request with JWT token| J
+    J -->|2.5 Provider Response| H
+    H -->|2.6 Deliver Data| K
+    I --> J
+
+
+```
+
+
+## 📊 FlowChart Diagram (via non-sftp)
+```mermaid
+flowchart TD
+    %% User creation
+    A[Local Python Script] -->|Create User| B["User (Invoker/Provider)"]
+    B --> C[make deploy]
+
+    %% Deployment stack
+    C --> D[Docker Compose Stack]
+
+    %% Independent CAPIF and xAPP
+    subgraph CAPIFBlock [CAPIF]
+        F[CAPIF - OpenCAPIF]
+    end
+    subgraph xAPPBlock [xAPP]
+        K[Dummy xAPP]
+    end
+
+    %% Provider onboarding (top container)
+    subgraph Onboarding [1. Provider Onboarding]
+        direction LR
+        E[Provider Onboarding Container]
+        G[capif_cert_server.pem]
+        E -->|1.3 Consume capif_cert_server.pem natively| E
         E -->|1.1 Onboard Provider| F
         F -->|1.2 Send back CERT capif_cert_server.pem| E
     end

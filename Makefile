@@ -1,5 +1,11 @@
 # Makefile for deploying and undeploying docker compose stack
 
+# Load variables from .env if it exists
+ifneq (,$(wildcard .env))
+  include .env
+  export
+endif
+
 DOCKER_COMPOSE := docker compose
 
 .PHONY: all create-external-network remove-external-network deploy undeploy clean
@@ -18,7 +24,11 @@ remove-external-network:
 
 deploy: create-external-network
 	echo ">>> Starting Docker Compose services..."
-	$(DOCKER_COMPOSE) up --build -d
+	ifeq ($(PROVIDER_PROFILE),True)
+		$(DOCKER_COMPOSE) --profile provider up --build -d
+	else
+		$(DOCKER_COMPOSE) up --build -d
+	endif
 	echo ">>> Deployment complete."
 
 undeploy:
