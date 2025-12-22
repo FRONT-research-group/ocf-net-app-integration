@@ -286,13 +286,15 @@ flowchart TD
     end
 
     %% Provider onboarding (top container)
-    subgraph Onboarding [1. Provider Onboarding]
+    subgraph Onboarding [1. Provider Application]
         direction LR
-        E[Provider Onboarding Container]
+        %% Independent Provider App
+        J[Provider App]
+        %%J[Provider Onboarding Process]
         G[capif_cert_server.pem]
-        E -->|1.3 Consume capif_cert_server.pem natively| E
-        E -->|1.1 Onboard Provider| F
-        F -->|1.2 Send back CERT capif_cert_server.pem| E
+        J -->|1.3 Consume capif_cert_server.pem natively| J
+        J -->|1.1 Onboard Provider| F
+        F -->|1.2 Send back CERT capif_cert_server.pem| J
     end
 
     %% Invoker onboarding (bottom container)
@@ -303,9 +305,6 @@ flowchart TD
         H -->|2.2 Onboard Invoker| F
         H -->|2.3 Save JWT| I     
     end
-
-    %% Independent Provider App
-    J[Provider App]
 
     %% Connections from deployment
     D --> Onboarding
