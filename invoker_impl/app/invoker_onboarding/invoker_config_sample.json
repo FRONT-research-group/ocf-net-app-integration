@@ -1,10 +1,10 @@
 {
-  "capif_host": "10.220.2.43",
-  "register_host": "10.220.2.43",
+  "capif_host": "capifcore",
+  "register_host": "capifcore",
   "capif_https_port": "443",
-  "capif_register_port": "8084",
-  "capif_username": "ppavlidis",
-  "capif_password": "ppavlidis",
+  "capif_register_port": "8080",
+  "capif_username": "skakaletsis-invoker",
+  "capif_password": "skakaletsis-invoker",
   "debug_mode": "True",
   "invoker": {
     "invoker_folder": "./app/invoker_folder/",
@@ -21,7 +21,7 @@
       "csr_locality": "Athens",
       "csr_state_or_province_name": "Athens",
       "csr_country_name": "GR",
-      "csr_email_address": "p.pavlidis@iit.demokritos.gr"
+      "csr_email_address": "sotirisk@iit.demokritos.gr"
     },
     "discover_filter": {
       "api-name": "",

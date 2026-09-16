@@ -3,7 +3,7 @@ info:
   title: FastAPI
   version: 0.1.0
 paths:
-  /3gpp-monitoring-event/v1/{scsAsId}/subscriptions:
+  /3gpp-monitoring-event-envelope/v1/{scsAsId}/subscriptions:
     get:
       tags:
       - MonitoringEvent API AF level GET Operation
@@ -1407,7 +1407,7 @@ paths:
                     title: Detail
                 type: object
                 title: HTTPValidationError
-  /3gpp-monitoring-event/v1/{scsAsId}/subscriptions/{subscriptionId}:
+  /3gpp-monitoring-event-envelope/v1/{scsAsId}/subscriptions/{subscriptionId}:
     get:
       tags:
       - MonitoringEvent API Subscription level GET Operation
