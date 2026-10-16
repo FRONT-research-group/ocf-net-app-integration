@@ -1,0 +1,42 @@
+{
+  "capif_host": "capifcore",
+  "register_host": "capifcore",
+  "capif_https_port": "443",
+  "capif_register_port": "8080",
+  "capif_username": "<INVOKER_USERNAME>",
+  "capif_password": "<INVOKER_PASSWORD>",
+  "debug_mode": "True",
+  "invoker": {
+    "invoker_folder": "./app/invoker_folder/",
+    "capif_callback_url": "http://localhost:5000",
+    "supported_features": "0",
+    "check_authentication_data": {
+      "ip": "",
+      "port": ""
+    },
+    "cert_generation": {
+      "csr_common_name": "invokerCSR",
+      "csr_organizational_unit": "FRONT unit",
+      "csr_organization": "Demokritos",
+      "csr_locality": "Athens",
+      "csr_state_or_province_name": "Athens",
+      "csr_country_name": "GR",
+      "csr_email_address": "sotirisk@iit.demokritos.gr"
+    },
+    "discover_filter": {
+      "api-name": "",
+      "api-version": "",
+      "comm-type": "",
+      "protocol": "",
+      "aef-id": "",
+      "data-format": "",
+      "api-cat": "",
+      "preferred-aef-loc": "",
+      "req-api-prov-name": "",
+      "supported-features": "",
+      "api-supported-features": "",
+      "ue-ip-addr": "",
+      "service-kpis": ""
+    }
+  }
+}

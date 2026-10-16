@@ -1,0 +1,39 @@
+# Environment and secrets
+.env
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Tokens / credentials / generated CAPIF state
+*token*.txt
+*access_token*
+*refresh_token*
+provider_capif_ids.json
+invoker_capif_details.json
+*_capif_ids.json
+*_capif_details.json
+
+# Generated certificates / runtime state
+cef-provider-*/
+cef-invoker-*/
+tmp/
+
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# Logs
+*.log
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local working configuration containing real credentials
+cef/provider/provider_config.json
+cef/invoker/invoker_config.json
