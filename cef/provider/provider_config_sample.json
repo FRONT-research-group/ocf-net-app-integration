@@ -3,8 +3,8 @@
   "register_host": "172.20.0.8",
   "capif_https_port": "443",
   "capif_register_port": "8080",
-  "capif_username": "<PROVIDER_USERNAME>",
-  "capif_password": "<PROVIDER_PASSWORD>",
+  "capif_username": "skakaletsis",
+  "capif_password": "CHANGE_ME_PROVIDER_PASSWORD",
   "debug_mode": "True",
   "provider": {
     "provider_folder": "./provider_folder/",

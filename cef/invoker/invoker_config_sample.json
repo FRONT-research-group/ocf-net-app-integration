@@ -3,8 +3,8 @@
   "register_host": "capifcore",
   "capif_https_port": "443",
   "capif_register_port": "8080",
-  "capif_username": "<INVOKER_USERNAME>",
-  "capif_password": "<INVOKER_PASSWORD>",
+  "capif_username": "skakaletsis-invoker",
+  "capif_password": "CHANGE_ME_INVOKER_PASSWORD",
   "debug_mode": "True",
   "invoker": {
     "invoker_folder": "./app/invoker_folder/",

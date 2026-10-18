@@ -37,3 +37,29 @@ Thumbs.db
 # Local working configuration containing real credentials
 cef/provider/provider_config.json
 cef/invoker/invoker_config.json
+
+# Local CAPIF credential-bearing configuration
+cef/provider/provider_config.json
+cef/invoker/invoker_config.json
+
+# Secrets / generated credentials
+.env
+*.jwt
+*.token
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Robot Framework output
+**/results/
+output.xml
+log.html
+report.html
+
+# Private keys
+*.key
+*.key.pem
+*private*.pem

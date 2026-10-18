@@ -1,7 +1,10 @@
 import os
 from opencapif_sdk import capif_provider_connector, api_schema_translator
 import re
+from capif_compat import install_capif_compat
 
+install_capif_compat()
+#API_HOST = os.getenv('API_HOST', '10.220.2.43')
 PROVIDER_API_HOST = os.getenv('PROVIDER_API_HOST', '127.0.0.1')
 PROVIDER_API_PORT = os.getenv('PROVIDER_API_PORT', '8001')
 PROVIDER_API_SCHEME=os.getenv("PROVIDER_API_SCHEME", "https")
@@ -53,13 +56,13 @@ def showcase_capif_nef_connector_publish():
     4. Sets the API description path and retrieves CAPIF IDs for APF and AEF.
     5. Prepares the publish request with APF and AEF IDs, and supported features.
     6. Publishes the provider's services to CAPIF.
-
+    
     Raises:
         Any exceptions raised by the connector or translator methods.
     """
 
     capif_connector = capif_provider_connector(config_file=PROVIDER_CONFIG_FILE)
-
+    
     capif_connector.onboard_provider()
 
     translator = api_schema_translator(PROVIDER_OPENAPI_FILE)
@@ -70,12 +73,12 @@ def showcase_capif_nef_connector_publish():
     apf = capif_connector.provider_capif_ids["APF-1"]
 
     #TODO enhancne to support a list of AEFs
-
+    
     request_aef_names=_parse_csv_env(PROVIDER_AEF_NAMES)
     aef_ids=_get_aef_ids(capif_connector.provider_capif_ids, requested_aef_names=request_aef_names,)
-
+    
     #aef = capif_connector.provider_capif_ids["AEF-1"]
-
+    
     capif_connector.publish_req['publisher_apf_id'] = apf
     capif_connector.publish_req['publisher_aefs_ids'] = aef_ids
     capif_connector.supported_features =PROVIDER_SUPPORTED_FEATURES

@@ -1,9 +1,11 @@
 import os
 from opencapif_sdk import capif_invoker_connector,service_discoverer
 
+from capif_compat import install_capif_compat
 
+install_capif_compat()
 INVOKER_CONFIG_FILE = os.getenv('INVOKER_CONFIG_FILE', './invoker_impl/app/invoker_onboarding/invoker_config_sample.json')
-INVOKER_ACCESS_TOKEN_FILE = os.getenv('INVOKER_ACCESS_TOKEN_FILE', './invoker_folder/jwt_token.txt')
+INVOKER_ACCESS_TOKEN_FILE = os.getenv('INVOKER_ACCESS_TOKEN_FILE', './invoker_impl/invoker_folder/ppavlidis/jwt_token.txt')
 
 def _write_to_file(filename, content):
     """
@@ -26,7 +28,7 @@ def _write_to_file(filename, content):
 
 def onboard_invoker() -> str:
     """
-    Onboards an invoker to the CAPIF system, discovers available services, retrieves a JWT access token,
+    Onboards an invoker to the CAPIF system, discovers available services, retrieves a JWT access token, 
     prints it, and writes it to a file.
     This function performs the following steps:
     1. Initializes the CAPIF invoker connector using the provided configuration file.
