@@ -63,3 +63,6 @@ report.html
 *.key
 *.key.pem
 *private*.pem
+
+# Public CAPIF CA trust bundle
+!cef/certs/capif-ca-bundle.pem
