@@ -143,8 +143,30 @@ LOCATION_REPORTING
 │
 └── nef/
     ├── MonitoringEventAPI/
+    │   ├── Dockerfile
+    │   ├── requirements.txt
+    │   ├── test_server.py
     │   └── app/
-    │       └── auth.py
+    │       ├── __init__.py
+    │       ├── auth.py
+    │       ├── config.py
+    │       ├── dependencies.py
+    │       ├── main.py
+    │       ├── routers/
+    │       │   ├── __init__.py
+    │       │   └── monitoring_event.py
+    │       ├── schemas/
+    │       │   ├── __init__.py
+    │       │   └── monitoring_event.py
+    │       ├── services/
+    │       │   ├── __init__.py
+    │       │   └── monitoring_event_service.py
+    │       └── utils/
+    │           ├── __init__.py
+    │           ├── db_data_handler.py
+    │           ├── local_last_known_data.py
+    │           ├── logger.py
+    │           └── reports_and_notification_helper.py
     └── docker-compose.cef.yaml
 ```
 
