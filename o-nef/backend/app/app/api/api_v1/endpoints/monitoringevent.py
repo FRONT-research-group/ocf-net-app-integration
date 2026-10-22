@@ -20,7 +20,7 @@ def read_active_subscriptions(
     *,
     scsAsId: str = Path(..., title="The ID of the Netapp that read all the subscriptions", example="myNetapp"),
     current_user: models.User = Depends(deps.get_current_active_user),
-    token_payload = Depends(deps.verify_with_public_key),
+    token_payload = Depends(deps.verify_monitoring_event_scope),
     http_request: Request
 ) -> Any:
     """
@@ -75,7 +75,7 @@ def create_subscription(
     db: Session = Depends(deps.get_db),
     item_in: schemas.MonitoringEventSubscriptionCreate,
     current_user: models.User = Depends(deps.get_current_active_user),
-    token_payload = Depends(deps.verify_with_public_key),
+    token_payload = Depends(deps.verify_monitoring_event_scope),
     http_request: Request
 ) -> Any:
     """
@@ -262,7 +262,7 @@ def update_subscription(
     subscriptionId: str = Path(..., title="Identifier of the subscription resource"),
     item_in: schemas.MonitoringEventSubscriptionCreate,
     current_user: models.User = Depends(deps.get_current_active_user),
-    token_payload = Depends(deps.verify_with_public_key),
+    token_payload = Depends(deps.verify_monitoring_event_scope),
     http_request: Request
 ) -> Any:
     """
@@ -340,7 +340,7 @@ def read_subscription(
     scsAsId: str = Path(..., title="The ID of the Netapp that creates a subscription", example="myNetapp"),
     subscriptionId: str = Path(..., title="Identifier of the subscription resource"),
     current_user: models.User = Depends(deps.get_current_active_user),
-    token_payload = Depends(deps.verify_with_public_key),
+    token_payload = Depends(deps.verify_monitoring_event_scope),
     http_request: Request
 ) -> Any:
     """
@@ -410,7 +410,7 @@ def delete_subscription(
     scsAsId: str = Path(..., title="The ID of the Netapp that creates a subscription", example="myNetapp"),
     subscriptionId: str = Path(..., title="Identifier of the subscription resource"),
     current_user: models.User = Depends(deps.get_current_active_user),
-    token_payload = Depends(deps.verify_with_public_key),
+    token_payload = Depends(deps.verify_monitoring_event_scope),
     http_request: Request
 ) -> Any:
     """

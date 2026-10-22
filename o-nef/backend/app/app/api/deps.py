@@ -1,3 +1,4 @@
+import os
 from typing import Generator, Dict
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -40,6 +41,81 @@ def verify_with_public_key(token: str = Depends(reusable_oauth2)):
         return payload
     else:
         return None
+
+
+def verify_capif_api_scope(
+    payload: dict,
+    expected_api_name: str,
+):
+    """
+    Verify that a CAPIF JWT is authorized for the expected API.
+
+    CAPIF scope format used by this deployment:
+        <scope-prefix>:<api-name>
+
+    Example:
+        3gpp#AEF123...:<api-name>
+    """
+
+    if not expected_api_name:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Expected CAPIF API name is not configured",
+        )
+
+    if not isinstance(payload, dict):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate CAPIF token payload",
+        )
+
+    scope_claim = payload.get("scope", "")
+
+    if not isinstance(scope_claim, str):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="CAPIF token has no valid API scope",
+        )
+
+    # CAPIF may provide one or more space-separated scope values.
+    for scope in scope_claim.split():
+        if ":" not in scope:
+            continue
+
+        _, scoped_api_name = scope.rsplit(":", 1)
+
+        if scoped_api_name == expected_api_name:
+            return payload
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="CAPIF token is not authorized for this API",
+    )
+
+
+def verify_monitoring_event_scope(
+    payload: dict = Depends(verify_with_public_key),
+):
+    """
+    CAPIF authorization dependency for MonitoringEvent.
+    """
+    return verify_capif_api_scope(
+        payload,
+        os.getenv("CAPIF_MONITORING_EVENT_API_NAME"),
+    )
+
+
+def verify_session_with_qos_scope(
+    payload: dict = Depends(verify_with_public_key),
+):
+    """
+    CAPIF authorization dependency for Session-with-QoS.
+    """
+    return verify_capif_api_scope(
+        payload,
+        os.getenv("CAPIF_SESSION_WITH_QOS_API_NAME"),
+    )
+
 
 def get_current_user(
     db: Session = Depends(get_db), token: str = Depends(reusable_oauth2)
