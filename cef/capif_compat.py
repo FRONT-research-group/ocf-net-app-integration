@@ -92,10 +92,17 @@ def install_capif_compat():
             kwargs.pop("json", None)
             kwargs.pop("data", None)
 
-            kwargs["auth"] = HTTPBasicAuth(
-                payload.get("username", ""),
-                payload.get("password", "")
-            )
+            # Invoker SDK sends credentials in the request payload.
+            # Provider SDK already supplies HTTPBasicAuth directly.
+            # Preserve existing auth when no payload credentials exist.
+            username = payload.get("username")
+            password = payload.get("password")
+
+            if username is not None or password is not None:
+                kwargs["auth"] = HTTPBasicAuth(
+                    username or "",
+                    password or ""
+                )
 
         target = urlsplit(url).hostname
 

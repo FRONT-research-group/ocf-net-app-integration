@@ -117,11 +117,17 @@ def main() -> None:
     init()
     capif_service_description()
     logger.info("Initial data created")
-    logger.info("Trying to connect with CAPIF Core Function")
-    if capif_nef_connector():
-        logger.info("Successfully onboard NEF in the CAPIF Core Function")
+    if os.getenv("CEF_MANAGES_CAPIF_PROVIDER", "false").lower() == "true":
+        logger.info(
+            "Skipping O-NEF CAPIF provider onboarding; "
+            "CEF manages provider onboarding and publication"
+        )
     else:
-        logger.info("Failed to onboard NEF in the CAPIF Core Function")
+        logger.info("Trying to connect with CAPIF Core Function")
+        if capif_nef_connector():
+            logger.info("Successfully onboard NEF in the CAPIF Core Function")
+        else:
+            logger.info("Failed to onboard NEF in the CAPIF Core Function")
 
 
 if __name__ == "__main__":

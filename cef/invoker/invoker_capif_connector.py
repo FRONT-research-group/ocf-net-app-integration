@@ -54,10 +54,7 @@ def onboard_invoker() -> str:
     discoverer_svc.get_tokens()
     jwt_token=discoverer_svc.token
 
-    return jwt_token
-
-    print("JWT TOKEN: ", jwt_token)
-
     _write_to_file(INVOKER_ACCESS_TOKEN_FILE, jwt_token)
+    return jwt_token
 if __name__=="__main__":
     onboard_invoker()

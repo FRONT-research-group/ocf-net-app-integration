@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import os
 from pymongo import MongoClient
 from app.core.config import settings
 
@@ -7,4 +8,9 @@ engine = create_engine(settings.SQLALCHEMY_DATABASE_URI, pool_pre_ping=True, poo
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine) #Each instance is a db session
 
 
-client = MongoClient(settings.MONGO_CLIENT, username='root', password='pass')
+client = MongoClient(
+    settings.MONGO_CLIENT,
+    username=os.getenv("MONGO_USER", "root"),
+    password=os.getenv("MONGO_PASSWORD", "pass"),
+    authSource="admin",
+)

@@ -82,13 +82,22 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 def extract_public_key(cert_path: str):
+    with open(cert_path, "rb") as f:
+        pem_data = f.read()
+
     try:
-        with open(cert_path, 'r') as f:
-            cert = f.read()
-    except FileNotFoundError as e:
-        print(e)
-        
-    crtObj = crypto.load_certificate(crypto.FILETYPE_PEM, cert)
-    pubKeyObject = crtObj.get_pubkey()
-    pubKeyString = crypto.dump_publickey(crypto.FILETYPE_PEM,pubKeyObject)
-    return pubKeyString
+        cert = crypto.load_certificate(
+            crypto.FILETYPE_PEM,
+            pem_data
+        )
+        pub_key = cert.get_pubkey()
+    except crypto.Error:
+        pub_key = crypto.load_publickey(
+            crypto.FILETYPE_PEM,
+            pem_data
+        )
+
+    return crypto.dump_publickey(
+        crypto.FILETYPE_PEM,
+        pub_key
+    )
