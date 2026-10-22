@@ -654,3 +654,26 @@ The E2E test validates:
 - subscription cleanup.
 
 ---
+
+## CEF + O-NEF integration
+
+This branch integrates the CEF CAPIF Provider and Invoker workflows with
+the imported O-NEF implementation.
+
+CEF has been validated against all CAPIF-facing northbound API families
+exposed by the imported O-NEF release:
+
+- 3GPP Monitoring Event API
+- 3GPP As Session with QoS API
+
+Both services were validated for CAPIF publication, discovery, token
+issuance, API-specific scope enforcement, CRUD operations, persistence
+and asynchronous notifications.
+
+See [`docs/CEF_ONEF_INTEGRATION.md`](docs/CEF_ONEF_INTEGRATION.md) for
+architecture, configuration and validation details.
+
+The O-NEF source under `o-nef/` originates from the upstream FRONT
+Research Group O-NEF project. See
+[`o-nef/UPSTREAM_IMPORT.md`](o-nef/UPSTREAM_IMPORT.md) for exact
+provenance.
