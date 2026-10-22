@@ -1,68 +1,112 @@
-# CEF–CAPIF–O-NEF Integration
+# CEF-CAPIF-O-NEF Integration
 
-This repository contains the integration components required to expose an **O-NEF MonitoringEvent API through CAPIF** using a **CEF provider/invoker model**.
+This repository contains the integration of the **CAPIF Exposing Function (CEF)**
+with the imported **O-NEF** implementation and **OpenCAPIF**.
 
-The implementation covers:
+CEF provides the CAPIF-facing integration required to:
 
-- CAPIF provider onboarding and service publication
-- CAPIF invoker onboarding and service discovery
-- CAPIF security-context creation and access-token retrieval
-- RS256 JWT validation in O-NEF
-- CAPIF AEF/API scope enforcement
-- authenticated MonitoringEvent subscriptions
-- asynchronous MonitoringEvent callbacks
-- subscription cleanup after the final report
-- TLS hostname and CA verification
-- Robot Framework regression tests
+- onboard API Providers to CAPIF;
+- publish O-NEF service APIs;
+- onboard API Invokers;
+- discover published O-NEF services;
+- establish CAPIF security contexts;
+- obtain CAPIF-issued access tokens;
+- invoke O-NEF using CAPIF Bearer tokens.
 
-The reference implementation has been validated end to end with TLS verification enabled.
+For the imported O-NEF release, CEF has been validated against all CAPIF-facing
+northbound API families exposed by O-NEF:
+
+- **3GPP Monitoring Event API**
+- **3GPP As Session with QoS API**
+
+Both API families have been validated for:
+
+- CAPIF Provider onboarding and service publication;
+- CAPIF Invoker onboarding and service discovery;
+- CAPIF access-token issuance;
+- RS256 JWT validation;
+- API-specific CAPIF scope enforcement;
+- POST, GET, PUT and DELETE operations;
+- persistence after subscription updates;
+- asynchronous notifications.
 
 > **Important**
 >
-> This repository is an integration package, not a complete OpenCAPIF or O-NEF distribution.  
-> A target organization must provide its own OpenCAPIF deployment, O-NEF deployment, network configuration, identifiers, credentials, DNS/service discovery, and production PKI material.
+> The complete sanitized O-NEF source snapshot used by this integration is
+> included under `o-nef/`.
+>
+> A target deployment must still provide its own OpenCAPIF configuration,
+> credentials, networking, DNS/service discovery and production PKI material.
+>
+> Runtime-generated CAPIF state, private keys, JWTs, generated certificates and
+> deployment-specific identifiers must not be committed to the repository.
 
 ---
 
 ## 1. Overview
 
-The integration connects three main components:
+The integration consists of three main functional components:
 
-- **CEF Provider** — onboards to CAPIF and publishes the O-NEF MonitoringEvent API.
-- **CEF Invoker** — discovers the published API, establishes a CAPIF security context, and obtains a CAPIF-issued access token.
-- **O-NEF** — verifies the CAPIF JWT and enforces the required CAPIF AEF/API scope before serving the MonitoringEvent request.
+- **CEF Provider** - onboards to CAPIF and publishes CAPIF-facing O-NEF APIs.
+- **CEF Invoker** - discovers the APIs, establishes CAPIF security contexts and
+  obtains CAPIF access tokens.
+- **O-NEF** - validates CAPIF JWTs and verifies that the token scope authorizes
+  access to the requested API.
 
-The CEF is the CAPIF-facing integration layer. It does not need to act as a reverse proxy for every API call. After service discovery and authorization, the invoker can call the O-NEF API directly with the CAPIF-issued Bearer token.
+The CAPIF-facing O-NEF API families in the imported release are:
+
+- `3gpp-monitoring-event/v1`
+- `3gpp-as-session-with-qos/v1`
+
+CEF acts as the CAPIF integration layer. It is not required to proxy every
+O-NEF API request.
+
+After discovery and authorization, an API consumer can call O-NEF using a
+CAPIF-issued Bearer token.
+
+Internal O-NEF management and simulation APIs remain internal and are not
+CAPIF-published northbound service APIs.
 
 ---
 
-## 2. Scope and Assumptions
+## 2. Scope
 
-This repository assumes that the target environment already provides:
+The complete imported O-NEF source used by this integration is located under:
 
-1. A reachable **OpenCAPIF** deployment.
-2. A reachable **O-NEF** deployment exposing the MonitoringEvent API.
-3. Network connectivity between CEF, OpenCAPIF, O-NEF, and the callback receiver.
-4. CAPIF provider and invoker credentials.
-5. A CAPIF-issued public key available to O-NEF for RS256 verification.
-6. DNS names or service names that match the TLS certificates presented by CAPIF services.
-7. Trusted CA certificates for the target deployment.
-8. Location data required by the MonitoringEvent implementation.
-
-Deployment-specific values must be supplied by the receiving organization. Examples include:
-
+```text
+o-nef/
 ```
+
+The target environment must provide:
+
+1. A reachable OpenCAPIF deployment.
+2. Network connectivity between CEF, OpenCAPIF, O-NEF and callback receivers.
+3. CAPIF Provider credentials.
+4. CAPIF Invoker credentials.
+5. The CAPIF security public key required for RS256 JWT validation.
+6. Appropriate trusted CA certificates.
+7. DNS or service names compatible with the TLS certificates.
+8. Deployment-specific O-NEF subscriber, location and QoS data.
+
+Deployment-specific identifiers must not be hardcoded into reusable repository
+configuration.
+
+Examples include:
+
+```text
 <CAPIF_HOST>
 <REGISTER_HOST>
 <CAPIF_REGISTER_PORT>
+<PUBLISHED_MONITORING_EVENT_API_NAME>
+<PUBLISHED_SESSION_WITH_QOS_API_NAME>
 <AEF_ID>
-<API_NAME>
-<NEF_HOST>
-<NEF_PORT>
+<O_NEF_HOST>
+<O_NEF_PORT>
 <SCS_AS_ID>
-<INVOKER_CONFIG_FILE>
 <PROVIDER_CONFIG_FILE>
+<INVOKER_CONFIG_FILE>
 <CA_BUNDLE>
+<CALLBACK_URL>
 ```
 
 ---
@@ -74,42 +118,58 @@ flowchart LR
     P[CEF Provider]
     C[OpenCAPIF]
     I[CEF Invoker]
-    N[O-NEF MonitoringEvent API]
-    R[Callback Receiver]
 
-    P -->|Onboard provider and publish API| C
-    I -->|Onboard, discover service, update security context| C
-    C -->|CAPIF-issued access token| I
-    I -->|Bearer JWT| N
-    N -->|Asynchronous MonitoringEvent notifications| R
+    subgraph N[O-NEF]
+        M[Monitoring Event API]
+        Q[As Session with QoS API]
+    end
+
+    R[API Consumer / Callback Receiver]
+
+    P -->|Provider onboarding and API publication| C
+    I -->|Invoker onboarding and service discovery| C
+    C -->|CAPIF access token| I
+
+    I -->|Bearer JWT| M
+    I -->|Bearer JWT| Q
+
+    M -->|LOCATION_REPORTING| R
+    Q -->|QOS_GUARANTEED| R
 ```
 
 ### Request flow
 
-1. The CEF provider onboards to CAPIF.
-2. The provider publishes the O-NEF MonitoringEvent API.
-3. The CEF invoker onboards to CAPIF.
-4. The invoker discovers the published API.
-5. CAPIF establishes or updates the invoker security context.
+1. The CEF Provider onboards to CAPIF.
+2. The Provider publishes an O-NEF CAPIF-facing service.
+3. The CEF Invoker onboards to CAPIF.
+4. The Invoker discovers the published service.
+5. CAPIF creates or updates the Invoker security context.
 6. CAPIF issues an RS256 JWT access token.
-7. The invoker calls O-NEF with the Bearer token.
-8. O-NEF verifies the token and validates CAPIF scope.
-9. O-NEF creates the MonitoringEvent subscription.
-10. O-NEF sends asynchronous notifications.
-11. The final notification contains `cancelInd=true`.
-12. O-NEF removes the subscription after the final report.
+7. The Invoker calls the corresponding O-NEF API using the Bearer token.
+8. O-NEF validates the JWT.
+9. O-NEF verifies that the JWT scope matches the requested API.
+10. O-NEF processes the authorized request.
+11. Where applicable, O-NEF sends an asynchronous notification.
 
-The validated MonitoringEvent type is:
+A valid CAPIF token for one API cannot be reused against the other API.
 
-```
-LOCATION_REPORTING
+For example:
+
+```text
+Monitoring JWT -> Monitoring API   allowed
+Monitoring JWT -> QoS API          403
+
+QoS JWT        -> QoS API          allowed
+QoS JWT        -> Monitoring API   403
 ```
 
 ---
 
 ## 4. Repository Structure
 
-```
+Relevant repository structure:
+
+```text
 .
 ├── capif/
 │   └── register/
@@ -118,9 +178,6 @@ LOCATION_REPORTING
 ├── cef/
 │   ├── capif_compat.py
 │   ├── certs/
-│   │   ├── capif-root-ca.crt
-│   │   ├── register-ca.crt
-│   │   └── capif-ca-bundle.pem
 │   ├── invoker/
 │   │   ├── invoker_capif_connector.py
 │   │   └── invoker_config_sample.json
@@ -132,65 +189,68 @@ LOCATION_REPORTING
 │   │   └── refresh_capif_token.py
 │   └── tests/
 │       └── robot/
-│           ├── capif_discovery.robot
-│           ├── monitoring_event_e2e.robot
-│           ├── nef_authorization.robot
-│           ├── requirements.txt
-│           └── resources/
-│               ├── callback_receiver.py
-│               ├── common.resource
-│               └── seed_location.py
 │
-└── nef/
-    ├── MonitoringEventAPI/
-    │   ├── Dockerfile
-    │   ├── requirements.txt
-    │   ├── test_server.py
-    │   └── app/
-    │       ├── __init__.py
-    │       ├── auth.py
-    │       ├── config.py
-    │       ├── dependencies.py
-    │       ├── main.py
-    │       ├── routers/
-    │       │   ├── __init__.py
-    │       │   └── monitoring_event.py
-    │       ├── schemas/
-    │       │   ├── __init__.py
-    │       │   └── monitoring_event.py
-    │       ├── services/
-    │       │   ├── __init__.py
-    │       │   └── monitoring_event_service.py
-    │       └── utils/
-    │           ├── __init__.py
-    │           ├── db_data_handler.py
-    │           ├── local_last_known_data.py
-    │           ├── logger.py
-    │           └── reports_and_notification_helper.py
-    └── docker-compose.cef.yaml
+├── o-nef/
+│   ├── backend/
+│   │   ├── Dockerfile.backend
+│   │   └── app/
+│   │       └── app/
+│   │           ├── api/
+│   │           │   ├── deps.py
+│   │           │   └── api_v1/
+│   │           │       └── endpoints/
+│   │           │           ├── monitoringevent.py
+│   │           │           └── qosMonitoring.py
+│   │           ├── core/
+│   │           │   └── security.py
+│   │           ├── db/
+│   │           │   └── session.py
+│   │           ├── tools/
+│   │           │   └── check_subscription.py
+│   │           └── initial_data.py
+│   └── UPSTREAM_IMPORT.md
+│
+├── nef/
+│   └── MonitoringEventAPI/
+│
+├── docs/
+│   └── CEF_ONEF_INTEGRATION.md
+│
+├── LICENSE
+└── README.md
 ```
+
+The `o-nef/` directory contains the imported O-NEF implementation used by the
+current integration.
+
+The `nef/MonitoringEventAPI/` directory contains earlier standalone
+MonitoringEvent integration work and is retained as reference material.
 
 ### Key files
 
 | File | Purpose |
 |---|---|
-| `cef/capif_compat.py` | Compatibility and TLS handling for the CAPIF SDK integration |
+| `cef/capif_compat.py` | CAPIF SDK compatibility and authentication handling |
 | `cef/provider/provider_capif_connector.py` | Provider onboarding and service publication |
-| `cef/invoker/invoker_capif_connector.py` | Invoker onboarding, discovery, and token-related flow |
-| `cef/scripts/refresh_capif_token.py` | Reusable CAPIF discovery and token-refresh utility |
-| `nef/MonitoringEventAPI/app/auth.py` | RS256 JWT verification and CAPIF scope authorization |
-| `nef/docker-compose.cef.yaml` | O-NEF CAPIF/security deployment overlay |
-| `capif/register/register_prepare.sh` | Reference Register TLS certificate preparation |
-| `cef/tests/robot/` | Regression and end-to-end test suite |
+| `cef/invoker/invoker_capif_connector.py` | Invoker onboarding, discovery and token retrieval |
+| `cef/scripts/refresh_capif_token.py` | CAPIF discovery and token refresh utility |
+| `o-nef/backend/app/app/api/deps.py` | CAPIF JWT and API-scope authorization |
+| `o-nef/backend/app/app/api/api_v1/endpoints/monitoringevent.py` | Monitoring Event API |
+| `o-nef/backend/app/app/api/api_v1/endpoints/qosMonitoring.py` | As Session with QoS API |
+| `o-nef/backend/app/app/core/security.py` | JWT/public-key security handling |
+| `o-nef/backend/app/app/initial_data.py` | O-NEF initialization and CEF-managed CAPIF Provider handling |
+| `o-nef/backend/app/app/db/session.py` | Database configuration |
+| `o-nef/backend/app/app/tools/check_subscription.py` | Subscription-processing support |
+| `o-nef/UPSTREAM_IMPORT.md` | Imported O-NEF provenance |
+| `docs/CEF_ONEF_INTEGRATION.md` | Detailed integration documentation |
 
 ---
 
+## 5. Configuration
 
-## 5. Quick Start
+### 5.1 CEF Provider
 
-### 5.1 Create local configuration files
-
-Provider:
+Create a local Provider configuration:
 
 ```bash
 cp \
@@ -198,121 +258,26 @@ cp \
   cef/provider/provider_config.json
 ```
 
-Invoker:
+The Provider connector is:
 
-```bash
-cp \
-  cef/invoker/invoker_config_sample.json \
-  cef/invoker/invoker_config.json
-```
-
-Edit both files for the target OpenCAPIF deployment.
-
-
-### 5.2 Configure runtime environment
-
-Example:
-
-```bash
-export CAPIF_HOST="<CAPIF_HOSTNAME>"
-export REGISTER_HOST="<REGISTER_HOSTNAME>"
-export CAPIF_REGISTER_PORT="<REGISTER_HTTPS_PORT>"
-
-export CAPIF_GETAUTH_MODE="basic_get"
-
-export CAPIF_TLS_VERIFY="True"
-export CAPIF_CA_FILE="<ABSOLUTE_PATH_TO_CA_BUNDLE>"
-
-export PROVIDER_CONFIG_FILE="$PWD/cef/provider/provider_config.json"
-export INVOKER_CONFIG_FILE="$PWD/cef/invoker/invoker_config.json"
-```
-
-The hostnames must match the Subject Alternative Name (SAN) values in the certificates presented by the target CAPIF services.
-
-### 5.3 Verify TLS before onboarding
-
-CAPIF endpoint:
-
-```bash
-openssl s_client \
-  -connect "${CAPIF_HOST}:443" \
-  -servername "${CAPIF_HOST}" \
-  -CAfile "${CAPIF_CA_FILE}" \
-  -verify_hostname "${CAPIF_HOST}" \
-  </dev/null 2>/dev/null \
-| grep 'Verify return code'
-```
-
-Register endpoint:
-
-```bash
-openssl s_client \
-  -connect "${REGISTER_HOST}:${CAPIF_REGISTER_PORT}" \
-  -servername "${REGISTER_HOST}" \
-  -CAfile "${CAPIF_CA_FILE}" \
-  -verify_hostname "${REGISTER_HOST}" \
-  </dev/null 2>/dev/null \
-| grep 'Verify return code'
-```
-
-Expected:
-
-```
-Verify return code: 0 (ok)
-```
-
-Do not proceed with `CAPIF_TLS_VERIFY=True` until the required TLS endpoints validate successfully.
-
----
-
-## 6. Configuration
-
-### 6.1 Provider
-
-The provider configuration template is:
-
-```
-cef/provider/provider_config_sample.json
-```
-
-Create a local copy:
-
-```bash
-cp \
-  cef/provider/provider_config_sample.json \
-  cef/provider/provider_config.json
-```
-
-Configure the values required by the target CAPIF deployment, including provider credentials and CAPIF connection details.
-
-The provider connector is:
-
-```
+```text
 cef/provider/provider_capif_connector.py
 ```
 
-It is responsible for:
+The Provider performs:
 
-- CAPIF provider onboarding;
-- obtaining provider-side CAPIF identifiers;
-- preparing the service description;
-- publishing the API in CAPIF.
+- CAPIF Provider authentication;
+- Provider onboarding;
+- Provider-side CAPIF identifier retrieval;
+- service-description preparation;
+- O-NEF API publication.
 
-> **Stateful operation**
->
-> Provider onboarding and publication create or modify CAPIF state. Do not use onboarding commands as health checks or repeatedly execute them in an already configured environment unless that behavior is intended.
+Provider onboarding and publication modify CAPIF state and should not be used
+as health checks.
 
----
+### 5.2 CEF Invoker
 
-### 7.1 Invoker
-
-The invoker configuration template is:
-
-```
-cef/invoker/invoker_config_sample.json
-```
-
-Create a local copy:
+Create a local Invoker configuration:
 
 ```bash
 cp \
@@ -320,181 +285,147 @@ cp \
   cef/invoker/invoker_config.json
 ```
 
-The invoker connector is:
+The Invoker connector is:
 
-```
+```text
 cef/invoker/invoker_capif_connector.py
 ```
 
-The invoker flow performs:
+The Invoker performs:
 
-- CAPIF invoker onboarding;
-- service discovery;
-- security-context establishment/update;
-- access-token retrieval.
+- CAPIF Invoker onboarding;
+- API discovery;
+- security-context creation or update;
+- CAPIF access-token retrieval.
 
-For an already onboarded invoker, use the reusable token-refresh script rather than creating new onboarding state.
+The same CEF Invoker implementation has been validated with both O-NEF API
+families.
 
----
+### 5.3 O-NEF CAPIF configuration
 
-### 7.2 O-NEF
+CEF manages CAPIF Provider integration for the imported O-NEF deployment when:
 
-CAPIF-aware authorization is implemented in:
-
+```text
+CEF_MANAGES_CAPIF_PROVIDER=true
 ```
-nef/MonitoringEventAPI/app/auth.py
-```
 
-The O-NEF deployment must provide values equivalent to:
+O-NEF must also know the CAPIF API names under which its services were
+published:
 
-```
-AUTH_ENABLED=True
-ALGORITHM=RS256
-PUB_KEY_PATH=<PATH_TO_CAPIF_PUBLIC_KEY>
-
-CAPIF_ENFORCE_SCOPE=True
-CAPIF_REQUIRED_API_NAME=<PUBLISHED_API_NAME>
-CAPIF_REQUIRED_AEF_ID=<AEF_ID>
+```text
+CAPIF_MONITORING_EVENT_API_NAME=<PUBLISHED_MONITORING_EVENT_API_NAME>
+CAPIF_SESSION_WITH_QOS_API_NAME=<PUBLISHED_SESSION_WITH_QOS_API_NAME>
 ```
 
 Example Compose fragment:
 
 ```yaml
 environment:
-  AUTH_ENABLED: "True"
-  ALGORITHM: "RS256"
-  PUB_KEY_PATH: "/app/certs/capif_security_server.pub.pem"
+  CEF_MANAGES_CAPIF_PROVIDER: "true"
 
-  CAPIF_ENFORCE_SCOPE: "True"
-  CAPIF_REQUIRED_API_NAME: "<PUBLISHED_API_NAME>"
-  CAPIF_REQUIRED_AEF_ID: "<AEF_ID>"
+  CAPIF_MONITORING_EVENT_API_NAME: "<PUBLISHED_MONITORING_EVENT_API_NAME>"
+  CAPIF_SESSION_WITH_QOS_API_NAME: "<PUBLISHED_SESSION_WITH_QOS_API_NAME>"
 ```
 
-The required CAPIF scope is expected in the form:
+The API names are deployment-specific.
 
+Do not commit generated API names as reusable defaults.
+
+### 5.4 CAPIF authorization
+
+CAPIF authorization for the imported O-NEF is implemented primarily in:
+
+```text
+o-nef/backend/app/app/api/deps.py
 ```
+
+The expected CAPIF API scope follows the form:
+
+```text
 3gpp#<AEF_ID>:<API_NAME>
 ```
 
-The API name and AEF ID must correspond to the service actually published in the target CAPIF deployment.
+O-NEF first validates the JWT and then confirms that the token contains the
+scope required by the requested API.
 
----
+Expected behavior:
 
-### 7.3 TLS
-
-#### Production recommendation
-
-The target organization should use its own PKI and DNS/service-discovery configuration.
-
-The files under:
-
+```text
+No token                  -> 401 Unauthorized
+Invalid token             -> 401 Unauthorized
+Wrong API scope           -> 403 Forbidden
+Correct API scope         -> request allowed
 ```
+
+### 5.5 TLS
+
+The target deployment should use its own PKI and DNS/service-discovery
+configuration.
+
+Reference PoC trust material is stored under:
+
+```text
 cef/certs/
 ```
 
-represent **reference PoC trust material** from the validated environment. They are not universal CAPIF certificates and should normally be replaced when deploying in another organization.
-
-The reference bundle is:
-
-```
-cef/certs/capif-ca-bundle.pem
-```
-
-It contains public certificates only.
-
-Check that a trust bundle does not contain a private key:
+Check that a CA bundle does not contain private-key material:
 
 ```bash
 grep -E \
   'BEGIN .*PRIVATE KEY' \
-  <CA_BUNDLE>
+  cef/certs/capif-ca-bundle.pem
 ```
 
 Expected:
 
-```
+```text
 <no output>
 ```
 
-#### CAPIF Register reference script
-
-```
-capif/register/register_prepare.sh
-```
-
-The Register service:
-
-- preserves its CA across restarts;
-- preserves its server private key;
-- generates a certificate with a DNS SAN;
-- serves HTTPS using that certificate.
-
-
 ---
 
-## 8. Running the Integration
+## 6. Running the CEF Integration
 
-### 8.1 Provider onboarding and publication
+### 6.1 Provider onboarding and publication
 
-After configuring the provider:
+Configure:
 
 ```bash
 export PROVIDER_CONFIG_FILE="$PWD/cef/provider/provider_config.json"
 ```
+
+Run:
 
 ```bash
 PYTHONPATH="$PWD/cef" \
 python cef/provider/provider_capif_connector.py
 ```
 
-This is a state-changing operation.
+CEF Provider publication has been validated against both CAPIF-facing O-NEF
+service families.
 
-Run it only when provider onboarding/publication is required.
+### 6.2 Invoker onboarding and token retrieval
 
----
-
-### 8.2 Invoker onboarding
-
-After configuring the invoker:
+Configure:
 
 ```bash
 export INVOKER_CONFIG_FILE="$PWD/cef/invoker/invoker_config.json"
 ```
 
-Run the invoker connector when initial onboarding is required:
+Run:
 
 ```bash
 PYTHONPATH="$PWD/cef" \
 python cef/invoker/invoker_capif_connector.py
 ```
 
-Do not repeatedly onboard the same invoker solely to refresh an access token.
-
----
-
-### 8.3 Refresh service discovery and access token
-
-For an existing invoker:
+For an already onboarded Invoker, the token-refresh utility can be used:
 
 ```bash
-export INVOKER_CONFIG_FILE="$PWD/cef/invoker/invoker_config.json"
-
 PYTHONPATH="$PWD/cef" \
 python cef/scripts/refresh_capif_token.py \
-/tmp/cef_capif_token.txt
+  /tmp/cef_capif_token.txt
 ```
-
-Expected output includes:
-
-```
-Running CAPIF service discovery...
-Requesting CAPIF access token...
-Discovery: OK
-CAPIF JWT: received
-JWT length: ...
-```
-
-The CAPIF SDK should also report successful discovery, security-context update, and token retrieval.
 
 Protect temporary token files:
 
@@ -502,27 +433,120 @@ Protect temporary token files:
 chmod 600 /tmp/cef_capif_token.txt
 ```
 
+Never commit CAPIF JWTs.
+
 ---
 
-### 8.4 Invoke the MonitoringEvent API
+## 7. O-NEF CAPIF-Facing APIs
 
-Endpoint form:
+### 7.1 Monitoring Event API
 
+Collection:
+
+```text
+/nef/api/v1/3gpp-monitoring-event/v1/{scsAsId}/subscriptions
 ```
-POST /3gpp-monitoring-event-envelope/v1/{scsAsId}/subscriptions
+
+Supported operations:
+
+```text
+GET
+POST
 ```
 
-Example body:
+Individual subscription:
+
+```text
+/nef/api/v1/3gpp-monitoring-event/v1/{scsAsId}/subscriptions/{subscriptionId}
+```
+
+Supported operations:
+
+```text
+GET
+PUT
+DELETE
+```
+
+Example request:
 
 ```json
 {
-  "msisdn": "<SUBSCRIBER_IDENTIFIER>",
+  "externalId": "<EXTERNAL_IDENTIFIER>",
   "notificationDestination": "http://<CALLBACK_HOST>:<CALLBACK_PORT>/notify",
   "monitoringType": "LOCATION_REPORTING",
-  "maximumNumberOfReports": 2,
-  "locationType": "CURRENT_LOCATION",
-  "repPeriod": {
-    "duration": 5
+  "maximumNumberOfReports": 5
+}
+```
+
+Example invocation:
+
+```bash
+curl -k \
+  -X POST \
+  "https://<O_NEF_HOST>/nef/api/v1/3gpp-monitoring-event/v1/<SCS_AS_ID>/subscriptions" \
+  -H "Authorization: Bearer ${MONITORING_CAPIF_TOKEN}" \
+  -H "Content-Type: application/json" \
+  --data @monitoring-request.json
+```
+
+Validated lifecycle:
+
+```text
+POST            -> 201
+GET collection  -> 200
+GET individual  -> 200
+PUT             -> 200
+GET after PUT   -> 200
+DELETE          -> 200
+```
+
+Persistence was verified by modifying the subscription with PUT and confirming
+the updated value using a separate GET request.
+
+### 7.2 As Session with QoS API
+
+Collection:
+
+```text
+/nef/api/v1/3gpp-as-session-with-qos/v1/{scsAsId}/subscriptions
+```
+
+Supported operations:
+
+```text
+GET
+POST
+```
+
+Individual subscription:
+
+```text
+/nef/api/v1/3gpp-as-session-with-qos/v1/{scsAsId}/subscriptions/{subscriptionId}
+```
+
+Supported operations:
+
+```text
+GET
+PUT
+DELETE
+```
+
+Example request:
+
+```json
+{
+  "ipv4Addr": "<UE_IPV4_ADDRESS>",
+  "notificationDestination": "http://<CALLBACK_HOST>:<CALLBACK_PORT>/notify",
+  "qosReference": 1,
+  "qosMonInfo": {
+    "reqQosMonParams": [
+      "ROUND_TRIP"
+    ],
+    "repFreqs": [
+      "EVENT_TRIGGERED"
+    ]
   }
 }
 ```
@@ -530,150 +554,193 @@ Example body:
 Example invocation:
 
 ```bash
-TOKEN="$(cat /tmp/cef_capif_token.txt)"
-
-curl -i \
+curl -k \
   -X POST \
-  "http://<NEF_HOST>:<NEF_PORT>/3gpp-monitoring-event-envelope/v1/<SCS_AS_ID>/subscriptions" \
-  -H "Authorization: Bearer ${TOKEN}" \
+  "https://<O_NEF_HOST>/nef/api/v1/3gpp-as-session-with-qos/v1/<SCS_AS_ID>/subscriptions" \
+  -H "Authorization: Bearer ${QOS_CAPIF_TOKEN}" \
   -H "Content-Type: application/json" \
-  --data @request.json
+  --data @qos-request.json
 ```
 
-A successful subscription creation returns:
+Validated lifecycle:
 
 ```text
-201 Created
+POST            -> 201
+GET collection  -> 200
+GET individual  -> 200
+PUT             -> 200
+GET after PUT   -> 200
+DELETE          -> 200
 ```
 
-For the validated two-report flow:
-
-```text
-callback 1 -> cancelInd=false
-callback 2 -> cancelInd=true
-```
-
-The subscription is then removed.
+Persistence was also verified with a separate GET after PUT.
 
 ---
 
-## 9. Running the Tests
+## 8. Asynchronous Notifications
 
-Robot Framework tests are located in:
+Both CAPIF-facing API families were validated with asynchronous O-NEF
+notifications.
+
+A simulated UE movement triggered:
+
+```text
+Monitoring Event   -> LOCATION_REPORTING -> callback HTTP 200
+Session with QoS   -> QOS_GUARANTEED     -> callback HTTP 200
+```
+
+The UE movement endpoint is an internal O-NEF simulation interface used to
+trigger application behavior during testing. It is not a CAPIF-published
+northbound API.
+
+Detailed callback examples and the complete test procedure are documented in
+[`docs/CEF_ONEF_INTEGRATION.md`](docs/CEF_ONEF_INTEGRATION.md).
+
+---
+
+## 9. Validation
+
+The imported O-NEF release was validated end-to-end through CEF/OpenCAPIF:
+
+| Validation | Monitoring Event | As Session with QoS |
+|---|:---:|:---:|
+| CEF Provider publication | PASS | PASS |
+| CEF Invoker discovery | PASS | PASS |
+| CAPIF token retrieval | PASS | PASS |
+| Missing/invalid token rejection | PASS | PASS |
+| API-specific scope enforcement | PASS | PASS |
+| Cross-API token isolation | PASS | PASS |
+| POST | PASS | PASS |
+| GET collection | PASS | PASS |
+| GET individual | PASS | PASS |
+| PUT | PASS | PASS |
+| Persistence after PUT | PASS | PASS |
+| Asynchronous callback | PASS | PASS |
+| DELETE | PASS | PASS |
+
+For the tested O-NEF release:
+
+> **CEF has been validated end-to-end against all CAPIF-facing northbound API
+> families exposed by O-NEF.**
+
+This applies to the CAPIF-facing service interface. Internal O-NEF management
+and simulation APIs remain internal by design.
+
+For detailed commands, payloads, callback traces and validation results, see
+[`docs/CEF_ONEF_INTEGRATION.md`](docs/CEF_ONEF_INTEGRATION.md).
+
+---
+
+## 10. Tests
+
+Robot Framework tests are available under:
 
 ```text
 cef/tests/robot/
 ```
 
-### 9.1 Configure test variables
-
-Before running the suite, review:
-
-```
-cef/tests/robot/resources/common.resource
-```
-
-The reference file may contain defaults from the original validation environment.
-
-Replace or override values such as:
-
-```
-repository root
-Python executable
-invoker config file
-CAPIF hostname
-Register hostname
-NEF base URL
-NEF container name
-Mongo container name
-Docker network
-callback container name
-test subscriber identifier
-wrong-scope token file
-```
-
-
-### 9.2 Full suite
-
-From the repository root:
-
-```bash
-python -m robot \
-  --outputdir cef/tests/robot/results \
-  cef/tests/robot
-```
-
-Reference validation result:
+Existing tests include:
 
 ```text
-6 tests, 5 passed, 0 failed, 1 skipped
+capif_discovery.robot
+monitoring_event_e2e.robot
+nef_authorization.robot
 ```
 
-The skipped test was the optional real wrong-scope-token test.
+These tests originate from the earlier standalone MonitoringEvent integration
+and cover CAPIF discovery, authorization and MonitoringEvent end-to-end
+behavior.
 
-### 9.3 Discovery test
+The imported O-NEF integration was additionally validated end-to-end for both
+CAPIF-facing API families, including publication, discovery, API-specific
+authorization, CRUD, persistence and asynchronous callbacks.
 
-```bash
-python -m robot \
-  --outputdir cef/tests/robot/results/discovery \
-  cef/tests/robot/capif_discovery.robot
-```
+The existing Robot suite should therefore not be interpreted as complete
+automated regression coverage for both imported O-NEF APIs.
 
-### 9.4 Authorization tests
-
-```bash
-python -m robot \
-  --outputdir cef/tests/robot/results/auth \
-  cef/tests/robot/nef_authorization.robot
-```
-
-The suite covers:
-
-- missing Bearer token rejection;
-- malformed/invalid JWT rejection;
-- successful authorization with a correctly scoped CAPIF token;
-- wrong-scope-token rejection when `WRONG_SCOPE_TOKEN_FILE` is supplied.
-
-### 9.5 MonitoringEvent end-to-end test
-
-```bash
-python -m robot \
-  --outputdir cef/tests/robot/results/e2e \
-  cef/tests/robot/monitoring_event_e2e.robot
-```
-
-The E2E test validates:
-
-- test location-data seeding;
-- callback receiver startup;
-- fresh CAPIF token retrieval;
-- authenticated subscription creation;
-- two asynchronous callbacks;
-- `cancelInd=false` followed by `cancelInd=true`;
-- O-NEF authorization;
-- subscription cleanup.
+See
+[`docs/CEF_ONEF_INTEGRATION.md`](docs/CEF_ONEF_INTEGRATION.md)
+for the complete validation procedure.
 
 ---
 
-## CEF + O-NEF integration
+## 11. O-NEF Provenance
 
-This branch integrates the CEF CAPIF Provider and Invoker workflows with
-the imported O-NEF implementation.
+The source under:
 
-CEF has been validated against all CAPIF-facing northbound API families
-exposed by the imported O-NEF release:
+```text
+o-nef/
+```
 
-- 3GPP Monitoring Event API
-- 3GPP As Session with QoS API
+originates from the FRONT Research Group O-NEF project.
 
-Both services were validated for CAPIF publication, discovery, token
-issuance, API-specific scope enforcement, CRUD operations, persistence
-and asynchronous notifications.
+Imported upstream reference:
 
-See [`docs/CEF_ONEF_INTEGRATION.md`](docs/CEF_ONEF_INTEGRATION.md) for
-architecture, configuration and validation details.
+```text
+Branch: main
+Tag:    v2.2.3
+Commit: 1656a2f68162b5359900dae743e24cf74009fcad
+```
 
-The O-NEF source under `o-nef/` originates from the upstream FRONT
-Research Group O-NEF project. See
-[`o-nef/UPSTREAM_IMPORT.md`](o-nef/UPSTREAM_IMPORT.md) for exact
-provenance.
+Exact provenance is documented in
+[`o-nef/UPSTREAM_IMPORT.md`](o-nef/UPSTREAM_IMPORT.md).
+
+Detailed integration documentation is available in
+[`docs/CEF_ONEF_INTEGRATION.md`](docs/CEF_ONEF_INTEGRATION.md).
+
+---
+
+## 12. Security and Deployment Notes
+
+Deployment-specific credentials and generated CAPIF state must not be committed.
+
+This includes:
+
+- CAPIF usernames and passwords;
+- access tokens;
+- Provider or Invoker private keys;
+- generated identifiers and onboarding state;
+- certificates containing private-key material;
+- database credentials;
+- temporary files containing secrets.
+
+CAPIF endpoints, API names, certificates and runtime identifiers should remain
+deployment-configurable.
+
+The current implementation is a PoC/reference integration. Production
+deployments should additionally address lifecycle automation, API cleanup,
+production PKI and broader automated regression testing.
+
+Further deployment details are documented in
+[`docs/CEF_ONEF_INTEGRATION.md`](docs/CEF_ONEF_INTEGRATION.md).
+
+---
+
+## 13. Integration Status
+
+The complete imported O-NEF source is included in this repository.
+
+CEF/OpenCAPIF integration applies to the O-NEF APIs intended to be
+CAPIF-facing:
+
+```text
+3GPP Monitoring Event API      PASS
+3GPP As Session with QoS API   PASS
+```
+
+Both services were published and discovered using the same CEF Provider and
+Invoker implementations and were validated for authentication, API-specific
+authorization, CRUD, persistence and asynchronous notifications.
+
+Internal O-NEF management and simulation APIs remain internal by design.
+
+---
+
+## 14. License
+
+This repository is distributed under the Apache License 2.0.
+
+See [`LICENSE`](LICENSE).
+
+O-NEF upstream provenance is documented in
+[`o-nef/UPSTREAM_IMPORT.md`](o-nef/UPSTREAM_IMPORT.md).
