@@ -1,7 +1,7 @@
 # CEF-CAPIF-O-NEF Integration
 
 This repository contains the integration of the **CAPIF Exposing Function (CEF)**
-with the imported **O-NEF** implementation and **OpenCAPIF**.
+with the separately maintained **O-NEF** implementation and **OpenCAPIF**.
 
 CEF provides the CAPIF-facing integration required to:
 
@@ -32,8 +32,9 @@ Both API families have been validated for:
 
 > **Important**
 >
-> The complete sanitized O-NEF source snapshot used by this integration is
-> included under `o-nef/`.
+> O-NEF is maintained in a separate repository:
+> https://labs.etsi.org/rep/ocf/cef/o-nef
+> Deploy O-NEF separately before running the integration.
 >
 > A target deployment must still provide its own OpenCAPIF configuration,
 > credentials, networking, DNS/service discovery and production PKI material.
@@ -71,11 +72,11 @@ CAPIF-published northbound service APIs.
 
 ## 2. Scope
 
-The complete imported O-NEF source used by this integration is located under:
+The O-NEF implementation is maintained separately at:
 
-```text
-o-nef/
-```
+https://labs.etsi.org/rep/ocf/cef/o-nef
+
+This repository contains the CEF integration components, not the O-NEF source.
 
 The target environment must provide:
 
@@ -190,26 +191,6 @@ Relevant repository structure:
 │   └── tests/
 │       └── robot/
 │
-├── o-nef/
-│   ├── backend/
-│   │   ├── Dockerfile.backend
-│   │   └── app/
-│   │       └── app/
-│   │           ├── api/
-│   │           │   ├── deps.py
-│   │           │   └── api_v1/
-│   │           │       └── endpoints/
-│   │           │           ├── monitoringevent.py
-│   │           │           └── qosMonitoring.py
-│   │           ├── core/
-│   │           │   └── security.py
-│   │           ├── db/
-│   │           │   └── session.py
-│   │           ├── tools/
-│   │           │   └── check_subscription.py
-│   │           └── initial_data.py
-│   └── UPSTREAM_IMPORT.md
-│
 ├── nef/
 │   └── MonitoringEventAPI/
 │
@@ -220,8 +201,7 @@ Relevant repository structure:
 └── README.md
 ```
 
-The `o-nef/` directory contains the imported O-NEF implementation used by the
-current integration.
+The O-NEF implementation is maintained separately at https://labs.etsi.org/rep/ocf/cef/o-nef.
 
 The `nef/MonitoringEventAPI/` directory contains earlier standalone
 MonitoringEvent integration work and is retained as reference material.
@@ -234,14 +214,6 @@ MonitoringEvent integration work and is retained as reference material.
 | `cef/provider/provider_capif_connector.py` | Provider onboarding and service publication |
 | `cef/invoker/invoker_capif_connector.py` | Invoker onboarding, discovery and token retrieval |
 | `cef/scripts/refresh_capif_token.py` | CAPIF discovery and token refresh utility |
-| `o-nef/backend/app/app/api/deps.py` | CAPIF JWT and API-scope authorization |
-| `o-nef/backend/app/app/api/api_v1/endpoints/monitoringevent.py` | Monitoring Event API |
-| `o-nef/backend/app/app/api/api_v1/endpoints/qosMonitoring.py` | As Session with QoS API |
-| `o-nef/backend/app/app/core/security.py` | JWT/public-key security handling |
-| `o-nef/backend/app/app/initial_data.py` | O-NEF initialization and CEF-managed CAPIF Provider handling |
-| `o-nef/backend/app/app/db/session.py` | Database configuration |
-| `o-nef/backend/app/app/tools/check_subscription.py` | Subscription-processing support |
-| `o-nef/UPSTREAM_IMPORT.md` | Imported O-NEF provenance |
 | `docs/CEF_ONEF_INTEGRATION.md` | Detailed integration documentation |
 
 ---
@@ -333,11 +305,10 @@ Do not commit generated API names as reusable defaults.
 
 ### 5.4 CAPIF authorization
 
-CAPIF authorization for the imported O-NEF is implemented primarily in:
+O-NEF performs CAPIF JWT validation and API-specific scope enforcement.
+The implementation is maintained in the separate O-NEF repository:
 
-```text
-o-nef/backend/app/app/api/deps.py
-```
+https://labs.etsi.org/rep/ocf/cef/o-nef
 
 The expected CAPIF API scope follows the form:
 
@@ -664,29 +635,15 @@ for the complete validation procedure.
 
 ---
 
-## 11. O-NEF Provenance
+## 11. O-NEF Repository
 
-The source under:
+O-NEF is maintained separately from the CEF integration.
 
-```text
-o-nef/
-```
+Repository: https://labs.etsi.org/rep/ocf/cef/o-nef
 
-originates from the FRONT Research Group O-NEF project.
+The integration was originally validated against an O-NEF snapshot based on upstream tag `v2.2.3`, commit `1656a2f68162b5359900dae743e24cf74009fcad`.
 
-Imported upstream reference:
-
-```text
-Branch: main
-Tag:    v2.2.3
-Commit: 1656a2f68162b5359900dae743e24cf74009fcad
-```
-
-Exact provenance is documented in
-[`o-nef/UPSTREAM_IMPORT.md`](o-nef/UPSTREAM_IMPORT.md).
-
-Detailed integration documentation is available in
-[`docs/CEF_ONEF_INTEGRATION.md`](docs/CEF_ONEF_INTEGRATION.md).
+Deploy a compatible O-NEF version separately before running the integration.
 
 ---
 
@@ -718,7 +675,7 @@ Further deployment details are documented in
 
 ## 13. Integration Status
 
-The complete imported O-NEF source is included in this repository.
+The O-NEF implementation is maintained in a separate repository.
 
 CEF/OpenCAPIF integration applies to the O-NEF APIs intended to be
 CAPIF-facing:
@@ -742,5 +699,4 @@ This repository is distributed under the Apache License 2.0.
 
 See [`LICENSE`](LICENSE).
 
-O-NEF upstream provenance is documented in
-[`o-nef/UPSTREAM_IMPORT.md`](o-nef/UPSTREAM_IMPORT.md).
+O-NEF is maintained at https://labs.etsi.org/rep/ocf/cef/o-nef.

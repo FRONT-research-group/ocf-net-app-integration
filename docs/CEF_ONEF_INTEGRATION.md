@@ -19,19 +19,15 @@ CEF is not required to proxy every O-NEF application request.
 The CAPIF control/security workflow is performed through CEF, while the
 authorized API request can be sent directly to O-NEF.
 
-## O-NEF provenance
+## O-NEF repository
 
-The O-NEF source code is imported under:
+The O-NEF implementation is maintained separately from CEF.
 
-    o-nef/
+Repository: https://labs.etsi.org/rep/ocf/cef/o-nef
 
-It originates from the FRONT Research Group O-NEF project.
+The original integration was validated against an O-NEF snapshot based on tag `v2.2.3`, commit `1656a2f68162b5359900dae743e24cf74009fcad`.
 
-See:
-
-    o-nef/UPSTREAM_IMPORT.md
-
-for the exact upstream repository, branch, commit, tag and import details.
+O-NEF must be deployed separately and be reachable from the CEF and CAPIF environment.
 
 ## Architecture
 
