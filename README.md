@@ -319,3 +319,25 @@ flowchart TD
 
 
 ```
+
+---
+
+## CEF / O-NEF CAPIF Integration
+
+This repository also contains the CEF integration with OpenCAPIF and the
+separately maintained O-NEF implementation.
+
+The integration provides CAPIF Provider onboarding, service publication,
+Invoker onboarding, service discovery, access-token retrieval and
+API-specific JWT authorization for:
+
+- 3GPP Monitoring Event API
+- 3GPP As Session with QoS API
+
+For detailed documentation, see:
+
+- [CEF / O-NEF Integration Overview](docs/CEF_CAPIF_ONEF_README.md)
+- [CEF / O-NEF Integration Details](docs/CEF_ONEF_INTEGRATION.md)
+
+The O-NEF implementation is maintained separately at:
+https://labs.etsi.org/rep/ocf/cef/o-nef
