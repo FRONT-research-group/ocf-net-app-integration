@@ -191,9 +191,7 @@ Relevant repository structure:
 │   └── tests/
 │       └── robot/
 │
-├── nef/
-│   └── MonitoringEventAPI/
-│
+|
 ├── docs/
 │   └── CEF_ONEF_INTEGRATION.md
 │
