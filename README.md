@@ -6,12 +6,12 @@ with the imported **O-NEF** implementation and **OpenCAPIF**.
 CEF provides the CAPIF-facing integration required to:
 
 - onboard API Providers to CAPIF;
-- publish O-NEF service APIs;
+- publish O-NEF CAPIF-facing service APIs;
 - onboard API Invokers;
 - discover published O-NEF services;
 - establish CAPIF security contexts;
 - obtain CAPIF-issued access tokens;
-- invoke O-NEF using CAPIF Bearer tokens.
+- invoke CAPIF-facing O-NEF APIs using CAPIF Bearer tokens.
 
 For the imported O-NEF release, CEF has been validated against all CAPIF-facing
 northbound API families exposed by O-NEF:
