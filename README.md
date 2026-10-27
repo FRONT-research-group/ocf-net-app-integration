@@ -695,6 +695,15 @@ Internal O-NEF management and simulation APIs remain internal by design.
 
 This repository is distributed under the Apache License 2.0.
 
+> [!IMPORTANT]
+> **Repository archived — moved to ETSI Labs**
+>
+> This repository has been migrated to ETSI Labs and is no longer maintained on GitHub.
+>
+> **New repository:** https://labs.etsi.org/rep/ocf/cef/integration
+>
+> Please use the ETSI Labs repository for future development, contributions, and issues. This GitHub repository is retained for historical reference.
+
 See [`LICENSE`](LICENSE).
 
 O-NEF is maintained at https://labs.etsi.org/rep/ocf/cef/o-nef.
